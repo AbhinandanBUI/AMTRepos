@@ -33,3 +33,5 @@ export interface AppData {
  export interface AppDataResponse {
   taskList: TimeTask[];
  }
+
+//  removing the projectList from AppDataResponse as it is not needed in the response.
