@@ -1,0 +1,32 @@
+.status-pending,
+.status-off {
+	display: inline-flex;
+	border-radius: 9999px;
+	padding: 0.25rem 0.625rem;
+	font-size: 0.75rem;
+	font-weight: 500;
+}
+
+.status-pending {
+	background: #fffaeb;
+	color: #b54708;
+}
+
+.status-off {
+	background: #f2f4f7;
+	color: #667085;
+}
+
+.week-picker {
+	width: 145px;
+}
+
+:host-context(.dark) .status-pending {
+	background: rgba(247, 144, 9, 0.12);
+	color: #fec84b;
+}
+
+:host-context(.dark) .status-off {
+	background: rgba(152, 162, 179, 0.12);
+	color: #d0d5dd;
+}

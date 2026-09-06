@@ -1,0 +1,72 @@
+<div class="space-y-6">
+	<div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+		<div>
+			<p class="text-sm font-medium text-brand-500">Daily time tracking</p>
+			<h1 class="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">Fill timesheet</h1>
+			<p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Record your working hours from Monday to Friday.</p>
+		</div>
+		<button type="button" (click)="saveEntries()" class="inline-flex items-center justify-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-600">
+			<svg class="size-4" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12.5 9.5 17 19 7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+			Save entries
+		</button>
+	</div>
+
+	@if (saved) {
+		<div class="rounded-lg border border-success-200 bg-success-50 px-4 py-3 text-sm font-medium text-success-700 dark:border-success-500/30 dark:bg-success-500/10 dark:text-success-400" role="status">Timesheet entries saved successfully.</div>
+	}
+
+	<div class="grid gap-4 sm:grid-cols-3">
+		<div class="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]"><p class="text-sm text-gray-500 dark:text-gray-400">Week total</p><p class="mt-2 text-2xl font-semibold text-gray-900 dark:text-white">{{ totalHours }}h</p><p class="mt-1 text-xs text-gray-400">Target: 40h</p></div>
+		<div class="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]"><p class="text-sm text-gray-500 dark:text-gray-400">Days entered</p><p class="mt-2 text-2xl font-semibold text-gray-900 dark:text-white">{{ enteredDays }} <span class="text-base font-normal text-gray-400">/ 5</span></p><p class="mt-1 text-xs text-gray-400">Working days</p></div>
+		<div class="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]"><p class="text-sm text-gray-500 dark:text-gray-400">Weekend</p><p class="mt-2 text-2xl font-semibold text-gray-900 dark:text-white">Off</p><p class="mt-1 text-xs text-gray-400">Saturday and Sunday</p></div>
+	</div>
+
+	<section class="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] sm:p-6">
+		<div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+			<div><h2 class="font-semibold text-gray-900 dark:text-white">Weekly project</h2><p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Select the project once. All tasks below will be recorded against it.</p></div>
+			<select [(ngModel)]="selectedProject" aria-label="Weekly project" class="table-input w-full sm:w-64"><option value="" disabled>Select project</option>@for (project of projects; track project) {<option [value]="project">{{ project }}</option>}</select>
+		</div>
+	</section>
+
+	<section class="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+		<div class="flex flex-col justify-between gap-4 border-b border-gray-200 px-5 py-4 sm:flex-row sm:items-center dark:border-gray-800">
+			<div><h2 class="font-semibold text-gray-900 dark:text-white">Weekly entries</h2><p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ weekLabel }}</p></div>
+			<div class="flex items-center gap-2">
+				<button type="button" (click)="previousWeek()" aria-label="Previous week" class="rounded-lg border border-gray-200 p-2 text-gray-500 transition hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-white/5"><svg class="size-5" viewBox="0 0 24 24" fill="none"><path d="m15 18-6-6 6-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg></button>
+				<div class="week-picker"><app-date-picker id="timesheetWeek" placeholder="Select week" [defaultDate]="selectedDate" (dateChange)="onWeekDateChange($event)"></app-date-picker></div>
+				<button type="button" (click)="nextWeek()" aria-label="Next week" class="rounded-lg border border-gray-200 p-2 text-gray-500 transition hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-white/5"><svg class="size-5" viewBox="0 0 24 24" fill="none"><path d="m9 18 6-6-6-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg></button>
+			</div>
+		</div>
+
+		<div class="overflow-x-auto">
+			<table class="w-full min-w-[980px] text-start text-sm">
+				<thead class="bg-gray-50 text-xs uppercase text-gray-500 dark:bg-white/[0.02] dark:text-gray-400"><tr><th class="px-5 py-3 font-medium">Day</th><th class="px-3 py-3 font-medium">Tasks</th><th class="px-3 py-3 font-medium">Hours</th><th class="px-3 py-3 font-medium">Notes</th><th class="px-5 py-3 text-end font-medium">Total</th></tr></thead>
+				<tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+					@for (entry of entries; track entry.dateKey) {
+						<tr [class]="entry.isWeekend ? 'bg-gray-50/70 dark:bg-white/[0.02]' : ''">
+							<td class="px-5 py-4"><div class="font-medium text-gray-900 dark:text-white">{{ entry.day }}</div><div class="text-xs text-gray-500">{{ entry.date | date: 'MMM d' }}</div></td>
+							<td class="px-3 py-4">
+								@if (entry.isWeekend) {
+									<span class="text-gray-400">Off</span>
+								} @else {
+									<div class="space-y-2">
+										@for (task of entry.tasks; track $index; let taskIndex = $index) {
+											<div class="flex items-center gap-2">
+												<select [(ngModel)]="task.task" class="table-input w-56"><option value="" disabled>Select task</option>@for (taskOption of tasks; track taskOption) {<option [value]="taskOption">{{ taskOption }}</option>}</select>
+												<button type="button" (click)="removeTask(entry, taskIndex)" [disabled]="entry.tasks.length === 1" [attr.aria-label]="'Remove task from ' + entry.day" class="rounded-md p-1.5 text-gray-400 transition hover:bg-error-50 hover:text-error-500 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-error-500/10"><svg class="size-5" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" /></svg></button>
+											</div>
+										}
+										<button type="button" (click)="addTask(entry)" class="inline-flex items-center gap-1 text-xs font-medium text-brand-500 hover:text-brand-600"><svg class="size-4" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg> Add task</button>
+									</div>
+								}
+							</td>
+							<td class="px-3 py-4"><div class="space-y-2">@for (task of entry.tasks; track $index) {<div class="flex items-center gap-1"><input type="number" min="0" max="24" step="0.5" [(ngModel)]="task.hours" [disabled]="entry.isWeekend" class="table-input w-20" /><span class="text-xs text-gray-400">h</span></div>}</div></td>
+							<td class="px-3 py-4"><div class="space-y-2">@for (task of entry.tasks; track $index) {<input [(ngModel)]="task.notes" [disabled]="entry.isWeekend" placeholder="Add a note" class="table-input w-44" />}</div></td>
+							<td class="px-5 py-4 text-end"><span [class]="entry.isWeekend ? 'text-gray-400' : 'font-semibold text-gray-700 dark:text-gray-200'">{{ entry.isWeekend ? 'Off' : getDayHours(entry) + 'h' }}</span></td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	</section>
+</div>

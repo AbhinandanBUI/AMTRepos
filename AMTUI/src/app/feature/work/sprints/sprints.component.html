@@ -1,0 +1,80 @@
+<div class="sprints-page" style="display:grid; grid-template-columns: 260px 1fr; gap:1rem;">
+	<aside style="padding-right:0.5rem; border-right:1px solid #eef6ff;">
+		<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+			<h3 style="margin:0;">Sprints</h3>
+			<button class="btn" (click)="toggleCreate()">New</button>
+		</div>
+		<ul style="list-style:none; padding:0; margin:0;">
+			<li *ngFor="let s of sprints" style="margin-bottom:0.4rem;">
+				<button class="btn" style="width:100%; text-align:left; background:transparent;" (click)="selectSprint(s)">{{s.name}} <div style="color:#64748b; font-size:0.85rem">{{s.start | date:'shortDate'}} - {{s.end | date:'shortDate'}}</div></button>
+			</li>
+		</ul>
+	</aside>
+
+	<section>
+		<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:1rem;">
+			<div>
+				<h2 style="margin:0;">{{selectedSprint?.name || 'No Sprint Selected'}}</h2>
+				<div class="subtitle">Capacity: {{selectedSprint?.capacity || '-' }} • Velocity: {{selectedSprint?.velocity || '-'}}</div>
+			</div>
+			<div>
+				<div *ngIf="showCreate" style="background:#fff; padding:0.6rem; border-radius:8px; box-shadow:0 6px 18px rgba(2,6,23,0.06);">
+					<input placeholder="Sprint name" [(ngModel)]="newSprintName" class="field-input" style="display:block; margin-bottom:0.5rem;" />
+					<input type="date" [(ngModel)]="newSprintStart" class="field-input" style="display:inline-block; margin-right:0.5rem;" />
+					<input type="date" [(ngModel)]="newSprintEnd" class="field-input" style="display:inline-block;" />
+					<div style="margin-top:0.6rem; margin-bottom:0.4rem; font-weight:700;">Capacities (per role)</div>
+					<div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:0.5rem;">
+						<div *ngFor="let r of roles" style="min-width:110px;">
+							<div style="font-size:0.85rem; color:#64748b; margin-bottom:0.15rem;">{{r}}</div>
+							<input type="number" [(ngModel)]="newSprintCapacities[r]" class="field-input" placeholder="0" style="width:100%;" name="cap_{{r}}" />
+						</div>
+					</div>
+					<div style="margin-top:0.5rem; display:flex; gap:0.5rem;">
+						<button class="btn btn-primary" (click)="createSprint(newSprintName, newSprintStart, newSprintEnd, newSprintCapacities)">Create</button>
+						<button class="btn" (click)="toggleCreate()">Cancel</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div style="display:grid; grid-template-columns: 2fr 1fr; gap:1rem; margin-top:1rem;">
+			<div>
+				<h3>Backlog</h3>
+				<div *ngFor="let b of backlogItems" style="display:flex; justify-content:space-between; align-items:center; padding:0.5rem; border-bottom:1px dashed #eef6ff;">
+					<div>
+						<div style="font-weight:600">{{b.title}}</div>
+												<div style="color:#64748b; font-size:0.9rem; display:flex; gap:0.6rem; align-items:center">SP: {{b.points}} •
+													<div class="avatar" [style.background]="getAssigneeColor(b.assignee)" style="width:22px;height:22px;border-radius:6px;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700">{{getInitials(b.assignee)}}</div>
+													<div>{{b.assignee}}</div>
+												</div>
+					</div>
+					<div style="display:flex; gap:0.4rem;">
+						<button class="btn" (click)="assignToSprint(b)" [disabled]="b.sprintId===selectedSprint?.id">Add to Sprint</button>
+						<button class="btn" *ngIf="b.sprintId" (click)="unassignFromSprint(b)">Remove</button>
+					</div>
+				</div>
+			</div>
+
+			<div>
+				<h3>Sprint Scope</h3>
+				<div *ngIf="selectedSprint">
+					<div style="margin-bottom:0.6rem;">
+						<div style="font-weight:700; margin-bottom:0.35rem;">Capacities</div>
+						<div *ngFor="let r of roles" style="display:flex; justify-content:space-between; padding:0.25rem 0; border-bottom:1px dashed #f4f7fb;">
+							<div>{{r}}</div>
+							<div>{{selectedSprint.capacities[r] || 0}}</div>
+						</div>
+					</div>
+					<div *ngFor="let b of backlogItems.filter(x=>x.sprintId===selectedSprint.id)" style="padding:0.5rem; border-bottom:1px dashed #eef6ff;">
+						<div style="font-weight:600">{{b.title}}</div>
+												<div style="color:#64748b; font-size:0.9rem; display:flex; gap:0.6rem; align-items:center">SP: {{b.points}} •
+													<div class="avatar" [style.background]="getAssigneeColor(b.assignee)" style="width:22px;height:22px;border-radius:6px;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700">{{getInitials(b.assignee)}}</div>
+													<div>{{b.assignee}}</div>
+												</div>
+					</div>
+				</div>
+				<div *ngIf="!selectedSprint" class="panel-empty">Select a sprint to view scope.</div>
+			</div>
+		</div>
+	</section>
+</div>

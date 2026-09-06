@@ -1,0 +1,46 @@
+<div class="space-y-6">
+	<div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+		<div>
+			<p class="text-sm font-medium text-brand-500">Timesheet overview</p>
+			<h1 class="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">Pending timesheets</h1>
+			<p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Review the working dates that still need your time entries.</p>
+		</div>
+		<a routerLink="/timesheet/fill" class="inline-flex items-center justify-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-600">
+			<svg class="size-4" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
+			Fill timesheet
+		</a>
+	</div>
+
+	<div class="grid gap-4 sm:grid-cols-3">
+		<div class="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]"><p class="text-sm text-gray-500 dark:text-gray-400">Pending dates</p><p class="mt-2 text-2xl font-semibold text-warning-600">{{ pendingDays }}</p><p class="mt-1 text-xs text-gray-400">Need time entries</p></div>
+		<div class="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]"><p class="text-sm text-gray-500 dark:text-gray-400">Expected hours</p><p class="mt-2 text-2xl font-semibold text-gray-900 dark:text-white">{{ expectedHours }}h</p><p class="mt-1 text-xs text-gray-400">Monday to Friday</p></div>
+		<div class="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]"><p class="text-sm text-gray-500 dark:text-gray-400">Weekend</p><p class="mt-2 text-2xl font-semibold text-success-600">Off</p><p class="mt-1 text-xs text-gray-400">Saturday and Sunday</p></div>
+	</div>
+
+	<section class="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+		<div class="flex flex-col justify-between gap-4 border-b border-gray-200 px-5 py-4 sm:flex-row sm:items-center dark:border-gray-800">
+			<div><h2 class="font-semibold text-gray-900 dark:text-white">Week at a glance</h2><p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ weekLabel }}</p></div>
+			<div class="flex items-center gap-2">
+				<button type="button" (click)="previousWeek()" aria-label="Previous week" class="rounded-lg border border-gray-200 p-2 text-gray-500 transition hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-white/5"><svg class="size-5" viewBox="0 0 24 24" fill="none"><path d="m15 18-6-6 6-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg></button>
+				<div class="week-picker"><app-date-picker id="overviewWeek" placeholder="Select week" [defaultDate]="selectedDate" (dateChange)="onWeekDateChange($event)"></app-date-picker></div>
+				<button type="button" (click)="nextWeek()" aria-label="Next week" class="rounded-lg border border-gray-200 p-2 text-gray-500 transition hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-white/5"><svg class="size-5" viewBox="0 0 24 24" fill="none"><path d="m9 18 6-6-6-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg></button>
+			</div>
+		</div>
+
+		<div class="overflow-x-auto">
+			<table class="w-full min-w-[680px] text-start text-sm">
+				<thead class="bg-gray-50 text-xs uppercase text-gray-500 dark:bg-white/[0.02] dark:text-gray-400"><tr><th class="px-5 py-3 font-medium">Date</th><th class="px-3 py-3 font-medium">Status</th><th class="px-3 py-3 font-medium">Expected</th><th class="px-5 py-3 text-end font-medium">Action</th></tr></thead>
+				<tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+					@for (day of days; track day.dateKey) {
+						<tr [class]="day.isWeekend ? 'bg-gray-50/70 dark:bg-white/[0.02]' : ''">
+							<td class="px-5 py-4"><div class="font-medium text-gray-900 dark:text-white">{{ day.day }}</div><div class="text-xs text-gray-500">{{ day.date | date: 'MMM d, y' }}</div></td>
+							<td class="px-3 py-4"><span [class]="day.isWeekend ? 'status-off' : 'status-pending'">{{ day.status }}</span></td>
+							<td class="px-3 py-4 text-gray-700 dark:text-gray-300">{{ day.isWeekend ? '-' : day.expectedHours + 'h' }}</td>
+							<td class="px-5 py-4 text-end">@if (!day.isWeekend) { <a routerLink="/timesheet/fill" class="text-sm font-medium text-brand-500 hover:text-brand-600">Enter time</a> } @else { <span class="text-sm text-gray-400">Non-working day</span> }</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	</section>
+</div>

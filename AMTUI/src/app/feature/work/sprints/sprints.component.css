@@ -1,0 +1,10 @@
+/* Basic sprint styles */
+.sprints-page { padding:0.6rem; }
+.field-input { padding:0.45rem; border:1px solid #e6eef8; border-radius:8px; width:100%; }
+.btn { padding:0.4rem 0.7rem; border-radius:8px; }
+.btn-primary { background: linear-gradient(90deg,#2563eb,#0ea5e9); color:#fff; border:none; }
+.panel-empty { color:#64748b; padding:0.8rem; }
+
+@media (max-width:900px) {
+	.sprints-page { padding:0.4rem; }
+}

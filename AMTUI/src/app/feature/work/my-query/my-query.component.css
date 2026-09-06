@@ -1,0 +1,14 @@
+.query-wrap{padding:0.6rem}
+.query-editor textarea{width:100%; border:1px solid #e6eef6; border-radius:8px; padding:8px; font-family:inherit}
+.quick-filters{display:flex; gap:0.5rem; margin-top:0.5rem; align-items:center}
+.quick-filters .field-input{padding:6px 8px; border-radius:6px; border:1px solid #e6eef6}
+.results{margin-top:0.5rem}
+.result-row{padding:0.6rem; border-bottom:1px dashed #f1f5f9}
+.r-title{font-weight:600}
+.r-meta{color:#64748b; font-size:0.9rem}
+.panel-empty{padding:1rem; color:#64748b}
+.pagination{display:flex; justify-content:space-between; align-items:center; gap:0.5rem; margin-top:0.5rem}
+.pager-controls{display:flex; gap:0.4rem; align-items:center}
+.pager-controls .btn{padding:6px 8px}
+.pager-controls .btn.active{background:#0ea5a4; color:#fff}
+.pager-left{color:#64748b}

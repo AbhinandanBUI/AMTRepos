@@ -1,0 +1,40 @@
+<div class="boards-page">
+	<div class="board-toolbar" style="display:flex; gap:0.5rem; margin-bottom:0.75rem; align-items:center;">
+		<input class="field-input" placeholder="Search cards" [(ngModel)]="filter.q" style="flex:1;" />
+		<select class="field-input" [(ngModel)]="filter.type" style="width:180px;">
+			<option value="">All types</option>
+			<option *ngFor="let t of workItemTypes" [value]="t.Name">{{t.Name}}</option>
+		</select>
+		<button class="btn" (click)="filter={ q:'', type: '' }">Clear</button>
+	</div>
+
+	<div class="kanban" style="display:flex; gap:1rem; align-items:flex-start;">
+		<div *ngFor="let lane of cardsByLane" class="lane" style="flex:1; min-width:220px;">
+			<div class="lane-header" style="font-weight:700; margin-bottom:0.5rem; display:flex; justify-content:space-between; align-items:center;">
+				<div>{{lane.lane}}</div>
+				<div class="count" style="color:#6b7280; font-size:0.9rem;">{{lane.cards.length}}</div>
+			</div>
+			<div class="lane-cards" style="display:flex; flex-direction:column; gap:0.5rem;">
+				<div *ngFor="let c of lane.cards" class="card" style="background:#fff; border:1px solid #eef2f7; padding:0.6rem; border-radius:8px;">
+					<div style="display:flex; justify-content:space-between; align-items:center;">
+						<div style="font-weight:700;">{{c.title}}</div>
+						<div style="font-size:0.8rem; color:#6b7280">SP {{c.points}}</div>
+					</div>
+										<div style="display:flex; gap:0.6rem; align-items:center; margin-top:0.35rem; color:#6b7280;">
+											<div class="avatar" [style.background]="getAssigneeColor(c.assignee)" style="width:28px;height:28px;border-radius:8px;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700">{{getInitials(c.assignee)}}</div>
+											<div style="font-size:0.92rem">{{c.assignee}}</div>
+											<div style="margin-left:auto; display:flex; align-items:center; gap:0.4rem;">
+												<span class="type-dot" [style.background]="getTypeColor(c.type)" style="width:12px;height:12px;border-radius:4px;display:inline-block"></span>
+												<em style="font-style:normal; color:#6b7280">{{c.type}}</em>
+											</div>
+										</div>
+					<div style="display:flex; gap:0.5rem; margin-top:0.5rem;">
+						<button class="btn" (click)="moveCard(c,'left')">◀</button>
+						<button class="btn" (click)="openCard(c)">Open</button>
+						<button class="btn" (click)="moveCard(c,'right')">▶</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

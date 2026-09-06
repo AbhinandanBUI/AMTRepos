@@ -1,0 +1,361 @@
+<div class="work-item-create">
+    <div class="wic-card" #wicCard>
+        <div class="wic-header">
+            <div class="wic-title">
+                                <h2>New Work Item
+                                    <span class="type-badge" *ngIf="model.type" style="margin-left:0.6rem; vertical-align:middle;">
+                                        <span class="type-dot" [style.background]="getTypeColor(model.type)"></span>
+                                        {{model.type}}
+                                    </span>
+                                </h2>
+                <div class="subtitle">Create a work item quickly with planning, assignment and history.</div>
+            </div>
+            <div class="wic-actions">
+                <button class="btn btn-secondary" (click)="cancel()">Cancel</button>
+                <button class="btn btn-primary" (click)="submit()" [disabled]="hasErrors()">Save</button>
+            </div>
+        </div>
+
+        <div class="wic-body">
+            <div class="form-grid">
+                <!-- Type selector -->
+                <div class="row type-row" style="display:flex; gap:0.75rem; align-items:center;">
+                    <div style="min-width:120px;">
+                        <div class="label">Type</div>
+                        <select class="field-input" [(ngModel)]="model.type" (change)="onFieldChange('type', model.type)">
+                            <option *ngFor="let t of workItemTypes" [value]="t.Name">{{t.Name}}</option>
+                        </select>
+                    </div>
+                    <div style="flex:1"></div>
+                </div>
+                <!-- Title single line -->
+                <div class="row title-row">
+                    <label class="field full">
+                        <div class="label">Title</div>
+                        <input class="field-input" type="text" [(ngModel)]="model.title" placeholder="Enter title"
+                            (blur)="onFieldChange('title', model.title)" />
+                    </label>
+                </div>
+                <!-- Assigned To | State | Tags -->
+                <div class="row three-cols">
+                    <div>
+                        <div class="label">Assigned To</div>
+                        <div class="assignee-wrapper" #assigneeWrapper>
+                            <div class="assignee-input">
+                                <span class="avatar" [style.backgroundColor]="getAssignedAvatarColor()">{{
+                                    getInitials(model.assignedTo) }}</span>
+                                <input class="field-input" type="text" [(ngModel)]="model.assignedTo" placeholder="User or group"
+                                    (focus)="openAssigneeList()" (input)="onAssigneeFilterChange($event.target.value)"
+                                    (keydown)="onAssigneeInputKeydown($event)" />
+                            </div>
+                            <div class="assignee-list" *ngIf="showAssigneeList">
+                                <div class="assignee-item"
+                                    *ngFor="let u of filteredUsers; let i = index; trackBy: trackByUser"
+                                    (mousedown)="selectUser(u)" [class.focused]="i===focusedAssigneeIndex">
+                                    <span class="avatar" [style.backgroundColor]="getUserColor(u)">{{
+                                        getInitials(u.Name) }}</span>
+                                    <div class="assignee-meta">
+                                        <div class="assignee-name">{{u.Name}}</div>
+                                        <div class="assignee-email">{{u.Email}}</div>
+                                    </div>
+                                    <div class="assignee-role">{{u.Role}}</div>
+                                </div>
+                                <div class="assignee-empty" *ngIf="filteredUsers.length === 0">No users found</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="label">State</div>
+                        <div class="state-control">
+                            <select class="field-input" [(ngModel)]="model.state" (change)="onFieldChange('state', model.state)">
+                                <option *ngFor="let s of stateOptions" [value]="s.name" [style.color]="getStateColor(s.name)">● {{s.name}}</option>
+                            </select>
+                             
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="label">Tags</div>
+                        <input class="field-input" type="text" [(ngModel)]="model.tags" placeholder="comma-separated tags"
+                            (blur)="onFieldChange('tags', model.tags)" />
+                    </div>
+                </div>
+
+                <!-- Reason | Area | Iteration Path (moved below Assigned/State/Tags) -->
+                <div class="row three-cols">
+                    <div>
+                        <div class="label">Reason</div>
+                        <input class="field-input" type="text" [(ngModel)]="model.reason" (blur)="onFieldChange('reason', model.reason)" />
+                    </div>
+                    <div>
+                        <div class="label">Area</div>
+                        <input class="field-input" type="text" [(ngModel)]="model.area" (blur)="onFieldChange('area', model.area)" />
+                    </div>
+                    <div>
+                        <div class="label">Iteration Path</div>
+                        <input class="field-input" type="text" [(ngModel)]="model.iterationPath"
+                            (blur)="onFieldChange('iterationPath', model.iterationPath)" />
+                    </div>
+                </div>
+
+                <!-- Tabs for switching panels (moved below Details) -->
+                <div class="row tabs-row">
+                    <div class="tabs">
+                        <button class="tab" [class.active]="activeTab==='details'"
+                            (click)="selectTab('details')">Description & Planning</button>
+                        <button class="tab" [class.active]="activeTab==='linked'" (click)="selectTab('linked')">Linked
+                            Items</button>
+                        <button class="tab" [class.active]="activeTab==='history'"
+                            (click)="selectTab('history')">History</button>
+                        <button class="tab" [class.active]="activeTab==='attachments'"
+                            (click)="selectTab('attachments')">Attachments</button>
+                        <button class="tab" [class.active]="activeTab==='git'" (click)="selectTab('git')">Git / PR</button>
+                    </div>
+                    <div class="tab-content card-section">
+                        <ng-container *ngIf="activeTab === 'details'">
+
+
+                            <label class="field">
+                                <div class="label">Description</div>
+                                <textarea class="field-input" rows="3" [(ngModel)]="model.description" placeholder="Description"></textarea>
+                            </label>
+                            <label class="field">
+                                <div class="label">Acceptance Criteria</div>
+                                <textarea class="field-input" rows="3" [(ngModel)]="model.acceptanceCriteria"
+                                    placeholder="Describe acceptance criteria"></textarea>
+                            </label>
+                            <label class="field">
+                                <div class="label">Design Approach</div>
+                                <textarea class="field-input" rows="3" [(ngModel)]="model.designApproach"
+                                    placeholder="Design approach notes"></textarea>
+                            </label>
+                            <label class="field">
+                                <div class="label">Impact Analysis</div>
+                                <textarea class="field-input" rows="3" [(ngModel)]="model.impactAnalysis"
+                                    placeholder="Impact analysis notes"></textarea>
+                            </label>
+                            <div class="discussion-under-desc card-section" style="position:relative;">
+
+                                <div class="label">Discussion</div>
+                                <div class="discussion-list" *ngIf="model.discussions && model.discussions.length">
+                                    <div class="discussion-entry" *ngFor="let d of model.discussions">
+                                        <div class="disc-meta"><strong>{{d.author}}</strong> <span class="disc-time">{{
+                                                formatDate(d.ts) }}</span></div>
+                                        <div class="disc-body" [innerHTML]="d.html"></div>
+                                    </div>
+                                </div>
+                                <div #discussionArea contenteditable="true" class="discussion-input"
+                                    data-placeholder="Type and use @ to mention users" tabindex="0"
+                                    (input)="onDiscussionInputEditable($event)"
+                                    (keydown)="onDiscussionKeydownEditable($event)">
+                                </div>
+                                <div class="mention-list" *ngIf="showMentionList">
+                                    <div class="mention-item" *ngFor="let u of mentionCandidates; let i = index"
+                                        [class.focused]="i===mentionFocusedIndex" (click)="insertMentionEditable(u)">
+                                        <span class="avatar"
+                                            [style.backgroundColor]="getUserColor(u)">{{getInitials(u.Name)}}</span>
+                                        <div class="mention-meta">
+                                            <div class="mention-name">{{u.Name}}</div>
+                                            <div class="mention-role">{{u.Role}}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="margin-top:0.5rem; display:flex; gap:0.5rem;">
+                                    <button class="btn btn-primary" (click)="addDiscussion()">Add Comment</button>
+                                    <button class="btn btn-secondary"
+                                        (click)="discussionArea.innerHTML=''; showMentionList=false; mentionCandidates=[];">Clear</button>
+                                </div>
+
+                            </div>
+                        </ng-container>
+                        <ng-container *ngIf="activeTab === 'linked'">
+                            <div class="panel-header">Linked Items</div>
+                            <div class="linked-input" style="display:flex; gap:0.5rem; align-items:center;">
+                                <select class="field-input" [(ngModel)]="selectedLinkedType" style="width:34%;">
+                                    <option *ngFor="let t of workItemTypes" [ngValue]="t">{{t.Name}}</option>
+                                </select>
+                                <input class="field-input" #panelLinkInput type="text" placeholder="Enter work item id or title" style="flex:1;" />
+                                <button class="btn" (click)="addLinkedItem(panelLinkInput.value, selectedLinkedType); panelLinkInput.value='';">Add</button>
+                            </div>
+                            <div class="linked-list" *ngIf="model.linkedItems && model.linkedItems.length">
+                                <span class="linked-pill"
+                                    *ngFor="let li of model.linkedItems; let i = index; trackBy: trackByLinked">{{li.type?.Name || li.typeName}}: {{li.value}}
+                                    <button class="btn btn-secondary small" (click)="removeLinkedItem(i)">x</button></span>
+                            </div>
+                            <div class="panel-empty" *ngIf="!model.linkedItems || model.linkedItems.length===0">No
+                                linked items</div>
+                        </ng-container>
+                        <ng-container *ngIf="activeTab === 'history'">
+                            <div class="panel-header">Change History</div>
+                            <div *ngIf="historyEntries.length===0" class="panel-empty">No changes yet.</div>
+                            <ul class="history-list" *ngIf="historyEntries.length>0">
+                                <li *ngFor="let h of historyEntries">
+                                    <div class="history-row">
+                                        <div class="history-time">{{ formatDate(h.ts) }}</div>
+                                        <div class="history-desc"><strong>{{h.user}}</strong> changed
+                                            <em>{{h.field}}</em> from "{{h.oldValue}}" to "{{h.newValue}}"
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </ng-container>
+                        <ng-container *ngIf="activeTab === 'attachments'">
+                            <div class="panel-header">Attachments</div>
+                            <input class="field-input" type="file" (change)="onFilesSelected($event)" multiple />
+                            <ul class="attachment-list" *ngIf="model.attachments && model.attachments.length">
+                                <li *ngFor="let a of model.attachments; let i = index; trackBy: trackByAttachment">
+                                    <a [href]="a.url" target="_blank">{{a.name}}</a>
+                                </li>
+                            </ul>
+                        </ng-container>
+                        <ng-container *ngIf="activeTab === 'git'">
+                            <div class="panel-header">Git / Pull Request</div>
+                            <div class="field">
+                                <div class="label">Source Branch</div>
+                                <input class="field-input" [(ngModel)]="model.git.sourceBranch" placeholder="feature/your-branch" />
+                            </div>
+                            <div class="field">
+                                <div class="label">Target Branch</div>
+                                <input class="field-input" [(ngModel)]="model.git.targetBranch" placeholder="main" />
+                            </div>
+                            <div class="field">
+                                <div class="label">PR Title</div>
+                                <input class="field-input" [(ngModel)]="model.git.prTitle" placeholder="PR title" />
+                            </div>
+                            <div class="field">
+                                <div class="label">PR Description</div>
+                                <textarea class="field-input" rows="3" [(ngModel)]="model.git.prDescription" placeholder="Describe the PR"></textarea>
+                            </div>
+                            <div style="display:flex; gap:0.5rem; margin-bottom:0.75rem;">
+                                <button class="btn btn-primary" (click)="createPR()">Create Pull Request</button>
+                                <button class="btn btn-secondary" (click)="fetchCommits()">Load Commits</button>
+                            </div>
+
+                            <div *ngIf="model.git.pr" class="card-section">
+                                <div style="display:flex; justify-content:space-between; align-items:center;">
+                                    <div><strong>PR #{{model.git.pr.id}}</strong> — {{model.git.pr.title}}</div>
+                                    <div>
+                                        <span class="state-badge" [style.background]="getStateColor(model.git.pr.statusColor || 'New')">{{model.git.pr.status}}</span>
+                                    </div>
+                                </div>
+                                <div style="margin-top:0.5rem;">Commits: <strong>{{model.git.commits.length}}</strong></div>
+                                <div style="margin-top:0.5rem;">
+                                    <ul style="padding-left:1rem; margin:0;">
+                                        <li *ngFor="let c of model.git.commits; let ci = index">
+                                            <div style="display:flex; justify-content:space-between; align-items:center; gap:0.5rem;">
+                                                <div><strong>{{c.sha}}</strong> — {{c.message}}</div>
+                                                <div style="font-size:0.85rem; color:#6b7280;">{{c.author}}</div>
+                                            </div>
+                                            <div style="margin-top:0.35rem;">
+                                                <div *ngIf="c.comments && c.comments.length" style="margin-bottom:0.35rem;">
+                                                    <strong>Comments</strong>
+                                                    <div *ngFor="let cm of c.comments">- {{cm.author}}: {{cm.text}}</div>
+                                                </div>
+                                                <div style="display:flex; gap:0.5rem; margin-top:0.25rem;">
+                                                    <input class="field-input" [(ngModel)]="c.newComment" placeholder="Add inline comment" />
+                                                    <button class="btn" (click)="addCommitComment(ci)">Comment</button>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div style="margin-top:0.75rem; display:flex; gap:0.5rem; align-items:center;">
+                                    <div>Approvals required: <strong>{{model.git.approvalsRequired}}</strong></div>
+                                    <div>Approvals: <strong>{{model.git.pr.approvals?.length || 0}}</strong></div>
+                                    <button class="btn btn-primary" (click)="approvePR('You')" [disabled]="model.git.pr.status==='Merged'">Approve</button>
+                                </div>
+                            </div>
+                            <div *ngIf="!model.git.pr" class="panel-empty">No PR created yet.</div>
+                        </ng-container>
+                    </div>
+
+                    <!-- Discussion under Description with mention support -->
+
+                </div>
+            </div>
+
+            <div class="planning-col">
+                <div class="card-section">
+                    <h3>Planning</h3>
+                    <div class="section planning">
+                        <label class="field two-cols">
+                            <div>
+                                <div class="label">Story Point</div>
+                                    <input class="field-input" type="number" [(ngModel)]="model.storyPoint"
+                                        (change)="onFieldChange('storyPoint', model.storyPoint)" />
+                            </div>
+                            <div>
+                                <div class="label">Priority</div>
+                                    <select class="field-input" [(ngModel)]="model.priority"
+                                        (change)="onFieldChange('priority', model.priority)">
+                                    <option>Low</option>
+                                    <option>Medium</option>
+                                    <option>High</option>
+                                    <option>Critical</option>
+                                </select>
+                            </div>
+                        </label>
+
+                        <label class="field two-cols">
+                            <div>
+                                <div class="label">Risk</div>
+                                    <select class="field-input" [(ngModel)]="model.risk" (change)="onFieldChange('risk', model.risk)">
+                                    <option>Low</option>
+                                    <option>Medium</option>
+                                    <option>High</option>
+                                </select>
+                            </div>
+                            <div>
+                                <div class="label">Impacted Area</div>
+                                <input class="field-input" type="text" [(ngModel)]="model.impactedArea"
+                                    (blur)="onFieldChange('impactedArea', model.impactedArea)" />
+                            </div>
+                        </label>
+
+                        <label class="field two-cols">
+                            <div>
+                                <div class="label">Planning Start</div>
+                                <app-date-picker id="planStart" placeholder="Select date"
+                                    [defaultDate]="model.planStart"
+                                    (dateChange)="onPlanStartChange($event)"></app-date-picker>
+                            </div>
+                            <div>
+                                <div class="label">Planning End</div>
+                                <app-date-picker id="planEnd" placeholder="Select date" [defaultDate]="model.planEnd"
+                                    [minDate]="model.planStart"
+                                    (dateChange)="onPlanEndChange($event)"></app-date-picker>
+                                <div *ngIf="planDateError" class="field-error">{{planDateErrorMsg}}</div>
+                            </div>
+                        </label>
+
+                        <label class="field two-cols">
+                            <div>
+                                <div class="label">Actual Start</div>
+                                <app-date-picker id="actualStart" placeholder="Select date"
+                                    [defaultDate]="model.actualStart"
+                                    (dateChange)="onActualStartChange($event)"></app-date-picker>
+                            </div>
+                            <div>
+                                <div class="label">Actual End</div>
+                                <app-date-picker id="actualEnd" placeholder="Select date"
+                                    [defaultDate]="model.actualEnd" [minDate]="model.actualStart"
+                                    (dateChange)="onActualEndChange($event)"></app-date-picker>
+                                <div *ngIf="actualDateError" class="field-error">{{actualDateErrorMsg}}
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions removed from inline view; access Linked/History/Attachments via tabs below -->
+
+        </div>
+    </div>
+
+    <!-- removed duplicate Additional and Discussion sections (moved under Description) -->
+
+</div>
+
+<!-- Floating popovers removed; Quick Actions now use inline Quick View -->

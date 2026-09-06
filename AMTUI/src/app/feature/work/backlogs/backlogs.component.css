@@ -1,0 +1,22 @@
+:root{
+	--muted:#64748b;
+}
+.panel-empty{padding:1rem; color:var(--muted)}
+.assignee-cell{display:flex; gap:0.6rem; align-items:center}
+.avatar{width:36px; height:36px; border-radius:10px; display:inline-flex; align-items:center; justify-content:center; color:#fff; font-weight:700}
+.assignee-name{font-size:0.95rem}
+.state-badge{display:inline-block; padding:6px 10px; border-radius:999px; color:#062024; font-weight:600}
+.chip{background:#fff; border:1px solid #e6eef6; padding:6px 8px; border-radius:999px; display:inline-flex; gap:6px; align-items:center; cursor:pointer}
+.chip.active{background:#0ea5a4; color:#fff; border-color:transparent}
+.chip-dot{width:12px; height:12px; border-radius:3px; display:inline-block}
+.chip-badge{width:12px; height:12px; border-radius:6px; display:inline-block}
+
+.custom-select{position:relative}
+.select-toggle{background:#fff; border:1px solid #e6eef6; padding:6px 10px; border-radius:6px; cursor:pointer; display:inline-flex; align-items:center; gap:8px}
+.select-toggle .caret{margin-left:6px; color:#64748b}
+.select-panel{position:absolute; left:0; top:calc(100% + 6px); background:#fff; border:1px solid #e6eef6; box-shadow:0 10px 30px rgba(2,6,23,0.06); border-radius:8px; min-width:200px; z-index:120; max-height:260px; overflow:auto}
+.select-option{padding:8px 10px; display:flex; gap:8px; align-items:center; cursor:pointer}
+.select-option:hover{background:#f8fafc}
+.type-dot{width:12px; height:12px; border-radius:4px; display:inline-block}
+.type-btn{justify-content:flex-start}
+.types-list .btn.active{background:linear-gradient(90deg, rgba(14,165,164,0.08), rgba(59,130,246,0.02)); border-color:transparent}

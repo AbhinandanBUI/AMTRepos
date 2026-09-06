@@ -1,0 +1,79 @@
+{
+  "taskList": [
+    {
+      "Id": 1,
+      "Name": "",
+      "Project": "",
+      "Estimate": 1,
+      "Priority": {
+        "Id": "2",
+        "Name": "High",
+        "OrderBy": 3
+      },
+      "Status": {
+        "Id": "2",
+        "Name": "Completed",
+        "OrderBy": 3
+      },
+      "Notes": "",
+      "id": "0FSHoPhtcxI"
+    },
+    {
+      "Id": 1,
+      "Name": "",
+      "Project": "",
+      "Estimate": 1,
+      "Priority": {
+        "Id": 3,
+        "Name": "High",
+        "OrderBy": 3
+      },
+      "Status": {
+        "Id": "2",
+        "Name": "Completed",
+        "OrderBy": 3
+      },
+      "Notes": "",
+      "id": "j--tcm_kW30"
+    }
+  ],
+  "assignProjectList": [
+    {
+      "id": "101",
+      "name": "Website Redesign"
+    },
+    {
+      "id": "102",
+      "name": "Backend Refactor"
+    }
+  ],
+  "statusList": [
+    {
+      "id": "1",
+      "name": "To Do"
+    },
+    {
+      "id": "2",
+      "name": "In Progress"
+    },
+    {
+      "id": "3",
+      "name": "Completed"
+    }
+  ],
+  "fillTimeSheet": [
+    {
+      "id": "1",
+      "name": "To Do"
+    },
+    {
+      "id": "2",
+      "name": "In Progress"
+    },
+    {
+      "id": "3",
+      "name": "Completed"
+    }
+  ],
+  "$schema": "./node_modules/json-server/schema.json"
+}

@@ -1,0 +1,20 @@
+{
+  "taskList": [
+    { "id": 1, "title": "Design Landing Page", "projectId": 101, "statusId": 1 },
+    { "id": 2, "title": "Setup Database", "projectId": 102, "statusId": 2 }
+  ],
+  "assignProjectList": [
+    { "id": 101, "name": "Website Redesign" },
+    { "id": 102, "name": "Backend Refactor" }
+  ],
+  "statusList": [
+    { "id": 1, "name": "To Do" },
+    { "id": 2, "name": "In Progress" },
+    { "id": 3, "name": "Completed" }
+  ],
+  "fillTimeSheet": [
+    { "id": 1, "name": "To Do" },
+    { "id": 2, "name": "In Progress" },
+    { "id": 3, "name": "Completed" }
+  ]
+}

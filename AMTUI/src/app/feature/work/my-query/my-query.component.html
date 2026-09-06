@@ -1,0 +1,54 @@
+<div class="query-wrap">
+	<h3>My Query</h3>
+	<div class="query-editor">
+		<textarea [(ngModel)]="queryText" placeholder="Type queries like: type:Bug assignee:Alice state: " rows="3"></textarea>
+		<div class="quick-filters">
+			<input class="field-input" placeholder="Title contains" [(ngModel)]="titleQ" />
+			<select class="field-input" [(ngModel)]="typeQ">
+				<option value="">Any type</option>
+				<option *ngFor="let t of types" [value]="t.Name">{{t.Name}}</option>
+			</select>
+			<select class="field-input" [(ngModel)]="assigneeQ">
+				<option value="">Any assignee</option>
+				<option *ngFor="let u of users" [value]="u.Name">{{u.Name}}</option>
+			</select>
+			<select class="field-input" [(ngModel)]="stateQ">
+				<option value="">Any state</option>
+				<option *ngFor="let s of stateOptions" [value]="s">{{s}}</option>
+			</select>
+			<button class="btn btn-primary" (click)="clear()">Clear</button>
+		</div>
+	</div>
+
+	<div style="margin-top:0.75rem; font-weight:600">Results ({{totalResults}})</div>
+		<div class="results">
+		<div *ngFor="let it of pagedItems" class="result-row">
+			<div class="r-title">{{it.title}}</div>
+			<div class="r-meta" style="display:flex; gap:0.6rem; align-items:center">
+				<div class="avatar" [style.background]="getAssigneeColor(it.assignedTo)" style="width:24px;height:24px;border-radius:8px;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700">{{getInitials(it.assignedTo)}}</div>
+				<div style="color:#64748b">{{it.assignedTo}}</div>
+				<div style="margin-left:auto; display:flex; gap:0.4rem; align-items:center">
+					<span class="type-dot" [style.background]="getTypeColor(it.type)" style="width:10px;height:10px;border-radius:3px;display:inline-block"></span>
+					<span style="color:#64748b">{{it.type}}</span>
+					<span class="state-badge" [style.background]="getStateColor(it.state)" style="margin-left:8px">{{it.state}}</span>
+				</div>
+			</div>
+		</div>
+		<div *ngIf="totalResults===0" class="panel-empty">No matches</div>
+	</div>
+
+	<div class="pagination" *ngIf="totalResults>0">
+		<div class="pager-left">Showing {{ (currentPage-1)*pageSize + (pagedItems.length?1:0) }} - {{ (currentPage-1)*pageSize + pagedItems.length }} of {{totalResults}}</div>
+		<div class="pager-controls">
+			<button class="btn" (click)="prevPage()" [disabled]="currentPage===1">Prev</button>
+			<button class="btn" *ngFor="let p of pages" [class.active]="p===currentPage" (click)="setPage(p)">{{p}}</button>
+			<button class="btn" (click)="nextPage()" [disabled]="currentPage===totalPages">Next</button>
+			<select class="field-input" [(ngModel)]="pageSize" (ngModelChange)="setPageSize($event)">
+				<option [value]="5">5</option>
+				<option [value]="8">8</option>
+				<option [value]="12">12</option>
+				<option [value]="20">20</option>
+			</select>
+		</div>
+	</div>
+</div>

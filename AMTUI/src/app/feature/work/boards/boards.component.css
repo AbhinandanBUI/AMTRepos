@@ -1,0 +1,40 @@
+:root{
+	--bg: #f6f9fc;
+	--lane-bg: #ffffff;
+	--muted: #64748b;
+	--accent: linear-gradient(90deg,#2563eb 0%,#0ea5e9 100%);
+	--card-shadow: 0 6px 20px rgba(16,24,40,0.08);
+}
+
+/* Boards container */
+.boards-page { padding: 0.6rem; background: var(--bg); border-radius: 10px; }
+.board-toolbar { background: #ffffff; padding: 0.6rem; border-radius: 8px; box-shadow: var(--card-shadow); align-items:center; }
+.board-toolbar .field-input { border-radius: 8px; border:1px solid #e6eef8; padding:0.5rem; }
+.board-toolbar .btn { border-radius: 8px; padding:0.45rem 0.75rem; }
+
+.kanban { display:flex; gap:1rem; padding-top:0.75rem; }
+.lane { background: linear-gradient(180deg, rgba(255,255,255,0.9), #f8fbff); padding:0.8rem; border-radius:12px; min-height:120px; box-shadow: 0 4px 16px rgba(2,6,23,0.03); }
+.lane-header { display:flex; justify-content:space-between; align-items:center; padding-bottom:0.35rem; border-bottom:1px solid #eef6ff; margin-bottom:0.6rem; }
+.lane-header .count { background: #eef2ff; color:#3730a3; padding:4px 8px; border-radius:999px; font-weight:700; }
+
+.lane-cards { display:flex; flex-direction:column; gap:0.65rem; }
+.card { background: var(--lane-bg); border-radius:10px; padding:0.65rem; border:1px solid #eef6ff; box-shadow: var(--card-shadow); transition: transform .12s ease, box-shadow .12s ease; }
+.card:hover { transform: translateY(-6px); box-shadow: 0 12px 30px rgba(2,6,23,0.12); }
+.card .title { font-weight:700; font-size:0.98rem; }
+.card .meta { color:var(--muted); margin-top:0.35rem; font-size:0.9rem; }
+.card-actions { display:flex; gap:0.4rem; margin-top:0.6rem; }
+.card-actions .btn { background:transparent; border:1px solid #eef6ff; padding:0.35rem 0.5rem; border-radius:8px; }
+.card-actions .btn:hover { background:#f3f9ff; }
+
+/* Responsive */
+@media (max-width: 1100px) {
+	.kanban { gap:0.6rem; }
+}
+@media (max-width: 900px) {
+	.kanban { flex-direction: column; }
+}
+
+/* small helpers */
+.subtitle { color: var(--muted); }
+.btn-primary { background: var(--accent); color:#fff; border:none; box-shadow: 0 6px 16px rgba(2,6,23,0.08); }
+
