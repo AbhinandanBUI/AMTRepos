@@ -7,6 +7,7 @@ export let dbInstance = undefined;
 const connectDB = async () => {
   try {
     const connectionInstance = await mongoose.connect(
+      // this one for local development
        `${process.env.MONGODB_URI}/${DB_NAME}`,
     );
     console.log('dbName:',connectionInstance.connection.name);
