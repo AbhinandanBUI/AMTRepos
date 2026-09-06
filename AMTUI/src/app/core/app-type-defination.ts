@@ -29,3 +29,7 @@ export interface AppData {
   taskList: TimeTask[];
   projectList: ProjectAssignment[];
  }
+
+ export interface AppDataResponse {
+  taskList: TimeTask[];
+ }
