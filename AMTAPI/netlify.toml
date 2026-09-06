@@ -1,0 +1,8 @@
+[build]
+  command = "npm install && npm run build" # Adjust build command if needed
+  publish = "dist" # Change if your build output directory is different
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api"
+  status = 200
