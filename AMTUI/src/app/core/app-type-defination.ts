@@ -17,6 +17,7 @@ export interface TimeTask {
 
 
 export interface ProjectAssignment {
+  _id: string;
   Id: number;
   ProjectName: string;
   Allocation: number;
@@ -28,10 +29,18 @@ export interface ProjectAssignment {
 export interface AppData {
   taskList: TimeTask[];
   projectList: ProjectAssignment[];
- }
+}
 
- export interface AppDataResponse {
+export interface AppDataResponse {
   taskList: TimeTask[];
- }
+}
 
 //  removing the projectList from AppDataResponse as it is not needed in the response.
+
+export interface APIResponse {
+  statusCode: number,
+  totalrecords: number,
+  message: string,
+  success: boolean,
+  data: any
+}

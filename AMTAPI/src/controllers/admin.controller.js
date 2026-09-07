@@ -1,7 +1,6 @@
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { Trade } from "../model/trade.model.js";
-import { User } from "../model/user.model.js";
+ import { User } from "../model/user.model.js";
 import mongoose from "mongoose";
 
 const getAllUserLists = asyncHandler(async (req, res) => {

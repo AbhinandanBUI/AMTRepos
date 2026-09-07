@@ -91,11 +91,9 @@ app.use(passport.session()); // persistent login sessions
 import { errorHandler } from "./middlewares/error.middlewares.js";
 import healthcheckRouter from "./routes/healthcheck.routes.js";
 import userRouter from "./routes/user.routes.js";
-import productRouter from "./routes/product.routes.js";
-import loanRouter from "./routes/loan.routes.js";
-import traderoute from "./routes/trade.routes.js";
 import admin from "./routes/admin.routes.js";
 import addTask from './routes/addTask.router.js'
+import assignProject from './routes/assignProject.router.js'
 
  
 
@@ -135,11 +133,9 @@ app.get('/api/home', (req, res) => {
 
 app.use("/api/health", healthcheckRouter);
 app.use("/api/users", userRouter);
-app.use("/api/product", productRouter);
-app.use("/api/loan", loanRouter);
-app.use("/api/trade", traderoute);
 app.use("/api/admin", admin);
 app.use("/api/addTask", addTask);
+app.use("/api/assignProject", assignProject);
 // common error handling middleware
 
 // ! 🚫 Danger Zone

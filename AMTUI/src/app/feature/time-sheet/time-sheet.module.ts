@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { DatePickerComponent } from '../../shared/components/form/date-picker/date-picker.component';
 
 import { TimeSheetRoutingModule } from './time-sheet-routing.module';
@@ -17,7 +17,8 @@ import { OverViewComponent } from './over-view/over-view.component';
     CommonModule,
     FormsModule,
     DatePickerComponent,
-    TimeSheetRoutingModule
+    TimeSheetRoutingModule,
+    ReactiveFormsModule
   ]
 })
 export class TimeSheetModule { }
