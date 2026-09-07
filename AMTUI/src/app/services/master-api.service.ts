@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { APIResponse } from '../core/app-type-defination';
 
 export interface MasterApiRequestOptions {
 	headers?: HttpHeaders | Record<string, string | string[]>;
@@ -13,36 +14,36 @@ export class MasterAPIService {
 
 	constructor(private readonly http: HttpClient) {}
 
-	get<TResponse>(endpoint: string, options?: MasterApiRequestOptions): Observable<TResponse> {
-		return this.http.get<TResponse>(this.buildUrl(endpoint), options);
+	get(endpoint: string, options?: MasterApiRequestOptions): Observable<APIResponse> {
+		return this.http.get<APIResponse>(this.buildUrl(endpoint), options);
 	}
 
-	post<TResponse, TBody = unknown>(
+	post(
+		endpoint: string,
+		body: any,
+		options?: MasterApiRequestOptions
+	): Observable<APIResponse> {
+		return this.http.post<APIResponse>(this.buildUrl(endpoint), body, options);
+	}
+
+	put<APIResponse, TBody = unknown>(
 		endpoint: string,
 		body: TBody,
 		options?: MasterApiRequestOptions
-	): Observable<TResponse> {
-		return this.http.post<TResponse>(this.buildUrl(endpoint), body, options);
+	): Observable<APIResponse> {
+		return this.http.put<APIResponse>(this.buildUrl(endpoint), body, options);
 	}
 
-	put<TResponse, TBody = unknown>(
+	patch<APIResponse, TBody = unknown>(
 		endpoint: string,
 		body: TBody,
 		options?: MasterApiRequestOptions
-	): Observable<TResponse> {
-		return this.http.put<TResponse>(this.buildUrl(endpoint), body, options);
+	): Observable<APIResponse> {
+		return this.http.patch<APIResponse>(this.buildUrl(endpoint), body, options);
 	}
 
-	patch<TResponse, TBody = unknown>(
-		endpoint: string,
-		body: TBody,
-		options?: MasterApiRequestOptions
-	): Observable<TResponse> {
-		return this.http.patch<TResponse>(this.buildUrl(endpoint), body, options);
-	}
-
-	delete<TResponse>(endpoint: string, options?: MasterApiRequestOptions): Observable<TResponse> {
-		return this.http.delete<TResponse>(this.buildUrl(endpoint), options);
+	delete(endpoint: string, options?: MasterApiRequestOptions): Observable<APIResponse> {
+		return this.http.delete<APIResponse>(this.buildUrl(endpoint), options);
 	}
 
 	private buildUrl(endpoint: string): string {

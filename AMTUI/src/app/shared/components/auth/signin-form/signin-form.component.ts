@@ -5,7 +5,7 @@ import { LabelComponent } from '../../form/label/label.component';
 import { CheckboxComponent } from '../../form/input/checkbox.component';
 import { ButtonComponent } from '../../ui/button/button.component';
 import { InputFieldComponent } from '../../form/input/input-field.component';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 @Component({
@@ -27,7 +27,7 @@ export class SigninFormComponent implements OnInit {
   showPassword = false;
   loginForm: FormGroup = [] as unknown as FormGroup;
 
-  constructor(private fb: FormBuilder) {}
+  constructor(private fb: FormBuilder, private _router:Router) {}
 
   ngOnInit(): void {
     this.loadForm();
@@ -46,5 +46,7 @@ export class SigninFormComponent implements OnInit {
   }
   onSignIn() {
     console.log('login form value', this.loginForm.value);
+    this._router.navigateByUrl('/timesheet/overview');
+
   }
 }
