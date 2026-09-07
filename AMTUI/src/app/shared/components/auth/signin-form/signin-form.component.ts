@@ -1,11 +1,12 @@
 
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup } from '@angular/forms';
 import { LabelComponent } from '../../form/label/label.component';
 import { CheckboxComponent } from '../../form/input/checkbox.component';
 import { ButtonComponent } from '../../ui/button/button.component';
 import { InputFieldComponent } from '../../form/input/input-field.component';
 import { RouterModule } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-signin-form',
@@ -15,26 +16,35 @@ import { FormsModule } from '@angular/forms';
     ButtonComponent,
     InputFieldComponent,
     RouterModule,
-    FormsModule
-],
+    FormsModule,
+    ReactiveFormsModule
+  ],
   templateUrl: './signin-form.component.html',
   styles: ``
 })
-export class SigninFormComponent {
-
-  showPassword = false;
+export class SigninFormComponent implements OnInit {
   isChecked = false;
+  showPassword = false;
+  loginForm: FormGroup = [] as unknown as FormGroup;
 
-  email = '';
-  password = '';
+  constructor(private fb: FormBuilder) {}
+
+  ngOnInit(): void {
+    this.loadForm();
+  }
+
+  loadForm() {
+    this.loginForm = this.fb.group({
+      email: [''],
+      password: [''],
+      rememberMe: [false]
+    });
+  }
 
   togglePasswordVisibility() {
     this.showPassword = !this.showPassword;
   }
-
   onSignIn() {
-    console.log('Email:', this.email);
-    console.log('Password:', this.password);
-    console.log('Remember Me:', this.isChecked);
+    console.log('login form value', this.loginForm.value);
   }
 }

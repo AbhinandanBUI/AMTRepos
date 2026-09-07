@@ -1,12 +1,12 @@
 
   <div class="w-full max-w-md pt-10 mx-auto">
-    <a
+    <!-- <a
       routerLink="/"
       class="inline-flex items-center text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
     >
       <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 20 20" fill="none" class="size-5 stroke-current rtl:rotate-180"><path d="M12.7083 5L7.5 10.2083L12.7083 15.4167" stroke="" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
       Back to dashboard
-    </a>
+    </a> -->
   </div>
 
   <div class="flex flex-col justify-center flex-1 w-full max-w-md mx-auto">
@@ -77,13 +77,13 @@
       </div>
 
       <!-- Form -->
-      <form (ngSubmit)="onSignIn()" class="space-y-6">
+      <form  [formGroup]="loginForm" class="space-y-6">
         <div>
           <app-label>Email <span class="text-error-500">*</span></app-label>
           <app-input-field
             type="email"
             placeholder="info@gmail.com"
-            [value]="email"
+             formControlName="email"
             name="email"
             class="form-input"
             required
@@ -96,7 +96,7 @@
             <app-input-field
               [type]="showPassword ? 'text' : 'password'"
               placeholder="Enter your password"
-              [value]="password"
+              formControlName="password"
               name="password"
               class="form-input"
               className="ltr:pr-11 rtl:pl-11"
@@ -119,6 +119,7 @@
           <div class="flex items-center gap-3">
             <app-checkbox
               [(checked)]="isChecked"
+              formControlName="rememberMe"
               label="Keep me logged in"
             />
           </div>
