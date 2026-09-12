@@ -7,7 +7,7 @@ import {
 } from "../middlewares/auth.middlewares.js";
 
 const router = Router();
-router.route("/").get(getAssignProjectAsync);
-router.route("/save").post(saveAssignProjectAsync);
-router.route("/delete").delete(deleteAssignProjectAsync);
+router.route("/").get(verifyJWT,getAssignProjectAsync);
+router.route("/save").post(verifyJWT,saveAssignProjectAsync);
+router.route("/delete").delete(verifyJWT,deleteAssignProjectAsync);
 export default router;

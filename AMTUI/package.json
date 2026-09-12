@@ -10,6 +10,7 @@
   },
   "private": true,
   "dependencies": {
+    "@abacritt/angularx-social-login": "^2.6.0",
     "@amcharts/amcharts5": "^5.13.5",
     "@amcharts/amcharts5-geodata": "^5.1.4",
     "@angular/cdk": "^22.1.4",

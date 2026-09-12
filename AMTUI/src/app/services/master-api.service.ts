@@ -17,6 +17,9 @@ export class MasterAPIService {
 	get(endpoint: string, options?: MasterApiRequestOptions): Observable<APIResponse> {
 		return this.http.get<APIResponse>(this.buildUrl(endpoint), options);
 	}
+	googleLogin(endpoint: string, body: any, options?: MasterApiRequestOptions): Observable<any> {
+		return this.http.post<any>(this.buildUrl(endpoint), body, options);
+	}
 
 	post(
 		endpoint: string,

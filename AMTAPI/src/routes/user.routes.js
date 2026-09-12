@@ -17,6 +17,7 @@ import {
   verifyEmail,
   updateProfile,
   resetPassword,
+  googleLogin
 } from "../controllers/user.controllers.js";
 import {
   verifyJWT,
@@ -39,6 +40,7 @@ const router = Router();
 // Unsecured route
 router.route("/register").post(userRegisterValidator(), validate, registerUser);
 router.route("/login").post(userLoginValidator(), validate, loginUser);
+router.route("/google-login").post(validate, googleLogin);
 router.route("/refresh-token").post(refreshAccessToken);
 router.route("/verify-email/:verificationToken").get(verifyEmail);
 

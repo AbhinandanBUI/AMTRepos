@@ -7,8 +7,8 @@ import mongoose from "mongoose";
 /// fetch records of all task created
 
 const getTaskAsync = asyncHandler(async (req, res) => {
-  // const owner = req.user._id;
-  const result = await AddTask.find({isActive:true}).sort({ createdAt: -1 });
+  const owner = req.user._id;
+  const result = await AddTask.find({createdByUser:owner,isActive:true}).sort({ createdAt: -1 });
   return res
     .status(200)
     .json(new ApiResponse(200, result, ApiResponseMessage.Records_Success, result.length));
@@ -17,10 +17,9 @@ const getTaskAsync = asyncHandler(async (req, res) => {
 /// saved task 
  
 const saveTaskAsync = asyncHandler(async (req, res) => {
-  const owner =  '6a9d069f1fd487998f2e2f2f';
+  const owner = req.user._id;
   const { taskName,projectId,estimatedHours,priority,status,notes } = req.body;
   const result = await AddTask.create({
-    owner: owner,
     taskName: taskName,
     projectId: projectId,
     estimatedHours: estimatedHours,
@@ -36,9 +35,8 @@ const saveTaskAsync = asyncHandler(async (req, res) => {
 });
 
 const deleteTaskAsync = asyncHandler(async (req, res) => {
-  // const owner = req.user._id;
-  console.log('req.query.id', req.query.id);
-  const result = await AddTask.findByIdAndUpdate({_id: new mongoose.Types.ObjectId(req.query.id) },{
+   const owner = req.user._id;
+   const result = await AddTask.findByIdAndUpdate({_id: new mongoose.Types.ObjectId(req.query.id) },{
     isActive: false
   });
   return res

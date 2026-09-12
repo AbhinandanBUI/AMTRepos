@@ -3,10 +3,14 @@ import jwt from "jsonwebtoken";
 import { UserLoginType, UserRolesEnum } from "../constants.js";
 import { User } from "../model/user.model.js";
 import { Profile } from "../model/profile.model.js";
- import { ApiError } from "../utils/ApiError.js";
+import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import mongoose from "mongoose";
+import { OAuth2Client } from "google-auth-library";
+const googleClient = new OAuth2Client(
+  process.env.GOOGLE_CLIENT_ID
+);
 
 import {
   getLocalPath,
@@ -126,10 +130,10 @@ const loginUser = asyncHandler(async (req, res) => {
     throw new ApiError(
       400,
       "You have previously registered using " +
-        user.loginType?.toLowerCase() +
-        ". Please use the " +
-        user.loginType?.toLowerCase() +
-        " login option to access your account."
+      user.loginType?.toLowerCase() +
+      ". Please use the " +
+      user.loginType?.toLowerCase() +
+      " login option to access your account."
     );
   }
 
@@ -402,11 +406,11 @@ const resetForgottenPassword = asyncHandler(async (req, res) => {
 
 const resetPassword = asyncHandler(async (req, res) => {
   // const { resetToken } = req.params;
-  const { email, updateId ,newPassword} = req.body;
-// console.log(email,updateId,newPassword);
+  const { email, updateId, newPassword } = req.body;
+  // console.log(email,updateId,newPassword);
   const user = await User.findOne({
     email,
-   _id: new mongoose.Types.ObjectId(updateId)  ,
+    _id: new mongoose.Types.ObjectId(updateId),
   });
 
   // If either of the one is false that means the token is invalid or expired
@@ -601,6 +605,144 @@ const updateProfile = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, updatedUser, "Profile updated successfully"));
 });
 
+// login with Google SSO
+
+const googleLogin = asyncHandler(async (req, res) => {
+
+  try {
+    const { credential } = req.body;
+    if (!credential) {
+      return res.status(400).json({
+        success: false,
+        message: "Google credential is required"
+      });
+    }
+    // Verify Google token
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID
+    });
+    const payload = ticket.getPayload();
+    const {
+      sub: googleId,
+      name,
+      email,
+      picture,
+      email_verified,
+      given_name, family_name, exp
+    } = payload;
+
+    // Check existing user
+    let user = await User.findOne({ email });
+
+    // Registration automatically happens here
+    if (!user) {
+      user = await User.create({
+        googleId,
+        email,
+        password: name.slice(0, 4) + '1234',
+        fullName: name,
+        username: email.split("@")[0],
+        isEmailVerified: email_verified,
+        role: UserRolesEnum.USER,
+        avatar: {
+          url: picture,
+          localPath: null
+        }
+      });
+      /**
+   * unHashedToken: unHashed token is something we will send to the user's mail
+   * hashedToken: we will keep record of hashedToken to validate the unHashedToken in verify email controller
+   * tokenExpiry: Expiry to be checked before validating the incoming token
+   */
+      const { unHashedToken, hashedToken, tokenExpiry } =
+        user.generateTemporaryToken();
+
+      /**
+       * assign hashedToken and tokenExpiry in DB till user clicks on email verification link
+       * The email verification is handled by {@link verifyEmail}
+       */
+      user.emailVerificationToken = hashedToken;
+      user.emailVerificationExpiry = tokenExpiry;
+      await user.save({ validateBeforeSave: false });
+
+      /////================ email service has been closed ====================== /////
+
+      // await sendEmail({
+      //   email: user?.email,
+      //   subject: "Please verify your email",
+      //   mailgenContent: emailVerificationMailgenContent(
+      //     user.username,
+      //     `${req.protocol}://${req.get(
+      //       "host"
+      //     )}/api/v1/users/verify-email/${unHashedToken}`
+      //   ),
+      // });
+
+      const createdUser = await User.findById(user._id).select(
+        "-password -refreshToken -emailVerificationToken -emailVerificationExpiry"
+      );
+
+      if (!createdUser) {
+        throw new ApiError(500, "Something went wrong while registering the user");
+      }
+
+    } else {
+
+      // Update Google ID/profile if necessary
+      user.googleId = googleId;
+      user.name = name;
+      user.profileImage = {
+        url: picture,
+        localPath: null
+      };
+
+      await user.save();
+    }
+ 
+
+    const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
+      user._id
+    );
+
+    // get the user document ignoring the password and refreshToken field
+    let loggedInUser = await User.findById(user._id).select(
+      "-password -refreshToken -emailVerificationToken -emailVerificationExpiry"
+    );
+    // const profile = await Profile.find({owner:user._id}).select('firstName lastName');
+    // loggedInUser.push(...profile[0].firstName+' '+profile[0].lastName);
+
+    // TODO: Add more options to make cookie more secure and reliable
+    const options = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+    };
+
+    return res
+      .status(200)
+      .cookie("accessToken", accessToken, options) // set the access token in the cookie
+      .cookie("refreshToken", refreshToken, options) // set the refresh token in the cookie
+      .json(
+        new ApiResponse(
+          200,
+          { user: loggedInUser, accessToken, refreshToken }, // send access and refresh token in response if client decides to save them by themselves
+          "User logged in successfully"
+        )
+      );
+
+  } catch (error) {
+
+    console.error(error);
+
+    return res.status(401).json({
+      success: false,
+      message: "Catch Google authentication failed"
+    });
+  }
+});
+// End Google SSO login
+
+
 export {
   assignRole,
   changeCurrentPassword,
@@ -616,8 +758,8 @@ export {
   updateUserAvatar,
   verifyEmail,
   updateProfile,
-  resetPassword
+  resetPassword,
+  googleLogin
 };
 
 
- 

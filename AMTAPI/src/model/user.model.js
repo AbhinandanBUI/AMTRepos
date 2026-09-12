@@ -9,7 +9,7 @@ import {
   UserLoginType,
   UserRolesEnum,
 } from "../constants.js";
- 
+
 const userSchema = new Schema(
   {
     avatar: {
@@ -21,6 +21,15 @@ const userSchema = new Schema(
         url: `https://pixlok.com/wp-content/uploads/2021/03/Avtar-Icon-PNG-Image.jpg`,
         localPath: "",
       },
+    },
+    googleId: {
+      type: String,
+      unique: true,
+      sparse: true
+    },
+    provider: {
+      type: String,
+      default: "google"
     },
     username: {
       type: String,
@@ -42,9 +51,9 @@ const userSchema = new Schema(
       lowercase: true,
       trim: true,
     },
-    dateofbirth:{
-      type:Date,
-      default:new Date()
+    dateofbirth: {
+      type: Date,
+      default: new Date()
     },
     role: {
       type: String,
@@ -101,9 +110,9 @@ userSchema.pre("save", async function (next) {
 userSchema.post("save", async function (user, next) {
   // ! Generally, querying data on every user save is not a good idea and not necessary when you are working on a specific application which has concrete models which are tightly coupled
   // ! However, in this application this user model is being referenced in many loosely coupled models so we need to do some initial setups before proceeding to make sure the data consistency and integrity
- 
+
   // Setup necessary social media models for the user
-  
+
   next();
 });
 

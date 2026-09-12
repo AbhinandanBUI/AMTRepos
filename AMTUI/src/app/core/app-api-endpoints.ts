@@ -2,6 +2,10 @@ export const App_API_Endpoints = {
 
     users: {
         registerUser: 'users/register',
+        googleLogin:'users/google-login',
+    },
+    common:{
+        getGoogle:'common/get-google-client'
     },
 
     taskAPI: {

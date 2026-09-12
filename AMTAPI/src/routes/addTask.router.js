@@ -7,7 +7,7 @@ import {
 } from "../middlewares/auth.middlewares.js";
 
 const router = Router();
-router.route("/").get(getTaskAsync);
-router.route("/save").post(saveTaskAsync);
-router.route("/delete").delete(deleteTaskAsync);
+router.route("/").get(verifyJWT,getTaskAsync);
+router.route("/save").post(verifyJWT,saveTaskAsync);
+router.route("/delete").delete(verifyJWT,deleteTaskAsync);
 export default router;

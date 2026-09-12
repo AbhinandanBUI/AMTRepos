@@ -1,6 +1,8 @@
 import { Component, ElementRef, HostListener, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
+import { LocalStorageService } from '../../../../services/StorageServices/local-storage.service';
+import { UserProfile } from '../../../../core/app-type-defination';
 
 export interface Language {
   id: string;
@@ -48,8 +50,9 @@ export class UserDropdownComponent implements OnInit {
       flag: 'flag-de.svg',
     },
   ];
+  userProfile: UserProfile|null = null;
 
-  constructor(private elementRef: ElementRef) {}
+  constructor(private elementRef: ElementRef,private _localStorage:LocalStorageService,private _router:Router) {}
 
   ngOnInit(): void {
     const savedDir = localStorage.getItem('dir');
@@ -60,6 +63,7 @@ export class UserDropdownComponent implements OnInit {
       this.currentLocale = 'en';
       document.documentElement.setAttribute('dir', 'ltr');
     }
+    this.getUserDetails();
   }
 
   get currentLang(): Language {
@@ -77,6 +81,8 @@ export class UserDropdownComponent implements OnInit {
   closeDropdown(): void {
     this.isOpen = false;
     this.subDropdownOpen = false;
+    this._localStorage.logout();
+    this._router.navigate(['/signin']);
   }
 
   toggleSubDropdown(event: Event): void {
@@ -102,5 +108,11 @@ export class UserDropdownComponent implements OnInit {
     if (this.isOpen && !this.elementRef.nativeElement.contains(event.target)) {
       this.closeDropdown();
     }
+  }
+
+  getUserDetails(){
+    this.userProfile = this._localStorage.getUser();
+    console.log('user',this.userProfile);
+
   }
 }
