@@ -1,10 +1,10 @@
 
 import { Component, NgZone, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
-import { LabelComponent } from '../../form/label/label.component';
-import { CheckboxComponent } from '../../form/input/checkbox.component';
-import { ButtonComponent } from '../../ui/button/button.component';
-import { InputFieldComponent } from '../../form/input/input-field.component';
+// import { LabelComponent } from '../../form/label/label.component';
+// import { CheckboxComponent } from '../../form/input/checkbox.component';
+// import { ButtonComponent } from '../../ui/button/button.component';
+// import { InputFieldComponent } from '../../form/input/input-field.component';
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MasterAPIService } from '../../../../services/master-api.service';
@@ -16,10 +16,10 @@ declare const google: any;
 @Component({
   selector: 'app-signin-form',
   imports: [
-    LabelComponent,
-    CheckboxComponent,
-    ButtonComponent,
-    InputFieldComponent,
+    // LabelComponent,
+    // CheckboxComponent,
+    // ButtonComponent,
+    // InputFieldComponent,
     RouterModule,
     FormsModule,
     ReactiveFormsModule

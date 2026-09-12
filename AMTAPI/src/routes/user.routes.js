@@ -5,7 +5,6 @@ import {
   assignRole,
   changeCurrentPassword,
   forgotPasswordRequest,
-  getCurrentUser,
   handleSocialLogin,
   loginUser,
   logoutUser,
@@ -15,7 +14,6 @@ import {
   resetForgottenPassword,
   updateUserAvatar,
   verifyEmail,
-  updateProfile,
   resetPassword,
   googleLogin
 } from "../controllers/user.controllers.js";
@@ -63,9 +61,7 @@ router.route("/logout").post(verifyJWT, logoutUser);
 router
   .route("/avatar")
   .patch(verifyJWT, upload.single("avatar"), updateUserAvatar);
-// router.route("/current-user").get(verifyJWT, getCurrentUser);
-router.route("/current-user").get(verifyJWT, getCurrentUser);
-router.route("/current-user").post(verifyJWT, updateProfile);
+
 router
   .route("/change-password")
   .post(

@@ -21,9 +21,14 @@ import { CalenderComponent } from './pages/calender/calender.component';
 
 export const routes: Routes = [
   {
-    path:'',
-    component:AppLayoutComponent,
-    children:[
+    path: 'signin',
+    component: SignInComponent,
+    title: 'Sign In | Ajile Management Tool'
+  },
+  {
+    path: '',
+    component: AppLayoutComponent,
+    children: [
       {
         path: '',
         component: EcommerceComponent,
@@ -32,14 +37,24 @@ export const routes: Routes = [
           'Dashboard | Ajile Management Tool'
       },
       {
-        path:'workitems',
+        path: 'workitems',
         loadChildren: () => import('./feature/work/work.module').then((m) => m.WorkModule),
-        title:'Work Items | Ajile Management Tool', 
+        title: 'Work Items | Ajile Management Tool',
       },
       {
         path: 'timesheet',
         loadChildren: () => import('./feature/time-sheet/time-sheet.module').then((m) => m.TimeSheetModule),
         title: 'Timesheet | Ajile Management Tool',
+      },
+      {
+        path: 'settings',
+        loadChildren: () => import('./feature/setting/setting.module').then((m) => m.SettingModule),
+        title: 'Settings | Ajile Management Tool',
+      },
+      {
+        path: '**',
+        component: NotFoundComponent,
+        title: 'Not Found | Ajile Management Tool'
       },
       // {
       //   path: '',
@@ -122,20 +137,17 @@ export const routes: Routes = [
     ]
   },
   // auth pages
+
   {
-    path:'signin',
-    component:SignInComponent,
-    title:'Sign In | Ajile Management Tool'
-  },
-  {
-    path:'signup',
-    component:SignUpComponent,
-    title:'Sign Up | Ajile Management Tool'
+    path: 'signup',
+    component: SignUpComponent,
+    title: 'Sign Up | Ajile Management Tool'
   },
   // error pages
   {
-    path:'**',
-    component:NotFoundComponent,
-    title:'Not Found | Ajile Management Tool'
+    path: '**',
+    component: SignInComponent,
+    title: 'Not Found | Ajile Management Tool'
   },
+
 ];

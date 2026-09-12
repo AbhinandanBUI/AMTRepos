@@ -1,5 +1,7 @@
 import { Component } from '@angular/core';
 import { New_Work_Items, APP_User_Data } from '../../../core/app-constant-data';
+import { MasterAPIService } from '../../../services/master-api.service';
+import { App_API_Endpoints } from '../../../core/app-api-endpoints';
 
 
 @Component({
@@ -17,11 +19,11 @@ export class BacklogsComponent {
   // color palette for avatars
   // consistent avatar palette and state colors (shared mapping)
   private avatarPalette = ['#2563eb', '#0ea5e9', '#f97316', '#10b981', '#7c3aed', '#ef4444', '#06b6d4', '#f59e0b', '#a78bfa', '#7dd3fc'];
-  private stateColorMap: Record<string,string> = {
-    'New':'#0ea5e9','Active':'#f59e0b','In Progress':'#f97316','Resolved':'#10b981','Closed':'#6b7280','Blocked':'#ef4444'
+  private stateColorMap: Record<string, string> = {
+    'New': '#0ea5e9', 'Active': '#f59e0b', 'In Progress': '#f97316', 'Resolved': '#10b981', 'Closed': '#6b7280', 'Blocked': '#ef4444'
   };
 
-  constructor() {
+  constructor(private _api: MasterAPIService) {
     if (this.workItemTypes.length) this.selectType(this.workItemTypes[0]);
   }
 
@@ -92,22 +94,22 @@ export class BacklogsComponent {
   }
 
   // Work item type colors (classic mapping)
-  private typeColorMap: Record<string,string> = {
-    'Bug':'#ef4444',
-    'ChangeRequest':'#f97316',
-    'Epic':'#8b5cf6',
-    'Feature':'#3b82f6',
-    'Issue':'#fb7185',
-    'Observation':'#f59e0b',
-    'Risk':'#f43f5e',
-    'Subtask':'#06b6d4',
-    'Task':'#10b981',
-    'Test':'#6366f1',
-    'TestCase':'#7c3aed',
-    'UserStory':'#0ea5a4'
+  private typeColorMap: Record<string, string> = {
+    'Bug': '#ef4444',
+    'ChangeRequest': '#f97316',
+    'Epic': '#8b5cf6',
+    'Feature': '#3b82f6',
+    'Issue': '#fb7185',
+    'Observation': '#f59e0b',
+    'Risk': '#f43f5e',
+    'Subtask': '#06b6d4',
+    'Task': '#10b981',
+    'Test': '#6366f1',
+    'TestCase': '#7c3aed',
+    'UserStory': '#0ea5a4'
   };
 
-  getTypeColor(typeName: string){
+  getTypeColor(typeName: string) {
     return this.typeColorMap[typeName] || '#94a3b8';
   }
 
@@ -120,4 +122,41 @@ export class BacklogsComponent {
   closeDropdowns() { this.assigneeOpen = false; this.stateOpen = false; }
   selectAssignee(name: string) { this.filter.assignee = name; this.assigneeOpen = false; }
   selectState(s: string) { this.filter.state = s; this.stateOpen = false; }
+
+  saveData() {
+    this._api.post(App_API_Endpoints.common.saveWorkItem, {}).subscribe({
+      next(value) {
+        console.log('success', value);
+      },
+      error(err) {
+        console.log('err', err);
+      },
+    });
+    this._api.post(App_API_Endpoints.common.saveDevelopmentState, {}).subscribe({
+      next(value) {
+        console.log('success', value);
+      },
+      error(err) {
+        console.log('err', err);
+      },
+    });
+  }
+  getDate(){
+    this._api.get(App_API_Endpoints.common.getDevelopmentStates, {}).subscribe({
+      next(value) {
+        console.log('getDevelopmentStates', value);
+      },
+      error(err) {
+        console.log('err', err);
+      },
+    });
+    this._api.get(App_API_Endpoints.common.getWorkItems, {}).subscribe({
+      next(value) {
+        console.log('getWorkItems', value);
+      },
+      error(err) {
+        console.log('err', err);
+      },
+    });
+  }
 }

@@ -101,6 +101,7 @@
   },
   "schematics": {
     "@schematics/angular:component": {
+      "standalone": false,
       "type": "component"
     },
     "@schematics/angular:directive": {

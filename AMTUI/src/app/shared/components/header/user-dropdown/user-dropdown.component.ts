@@ -78,11 +78,13 @@ export class UserDropdownComponent implements OnInit {
     }
   }
 
-  closeDropdown(): void {
+  closeDropdown(type:string): void {
     this.isOpen = false;
     this.subDropdownOpen = false;
+    if(type === 'logout'){
     this._localStorage.logout();
     this._router.navigate(['/signin']);
+    }
   }
 
   toggleSubDropdown(event: Event): void {
@@ -100,13 +102,13 @@ export class UserDropdownComponent implements OnInit {
       document.documentElement.setAttribute('dir', 'ltr');
       localStorage.setItem('dir', 'ltr');
     }
-    this.closeDropdown();
+    this.closeDropdown('');
   }
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
     if (this.isOpen && !this.elementRef.nativeElement.contains(event.target)) {
-      this.closeDropdown();
+      this.closeDropdown('');
     }
   }
 
