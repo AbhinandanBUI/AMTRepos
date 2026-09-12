@@ -8,11 +8,6 @@ const addTaskSchema = new Schema(
             type: Number,
             unique: true,
         },
-        owner: {
-            type: Schema.Types.ObjectId,
-            ref: "User",
-        },
-
         taskName: {
             type: String,
             required: true,

@@ -17,7 +17,7 @@ const getAssignProjectAsync = asyncHandler(async (req, res) => {
 /// saved task 
  
 const saveAssignProjectAsync = asyncHandler(async (req, res) => {
-  const owner =  '6a9d069f1fd487998f2e2f2f';
+  const owner = req.user._id;
   const { projectId,allocationHours,notes,startDate,endDate } = req.body;
   const result = await AssignProject.create({
     projectId: projectId,

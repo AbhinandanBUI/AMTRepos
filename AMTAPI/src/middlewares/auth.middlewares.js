@@ -8,7 +8,6 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
   const token =
     req.cookies?.accessToken ||
     req.header("Authorization")?.replace("Bearer ", "");
-
   if (!token) {
     throw new ApiError(401, "Unauthorized request");
   }
@@ -28,6 +27,8 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
   } catch (error) {
     // Client should make a request to /api/v1/users/refresh-token if they have refreshToken present in their cookie
     // Then they will get a new access token which will allow them to refresh the access token without logging out the user
+        console.log('mytoken catch');
+
     throw new ApiError(401, error?.message || "Invalid access token");
   }
 });

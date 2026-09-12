@@ -44,3 +44,9 @@ export interface APIResponse {
   success: boolean,
   data: any
 }
+export interface UserProfile {
+  email: string,
+  id: string,
+  name: string,
+  profileUrl: string
+}
