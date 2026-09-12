@@ -2,7 +2,6 @@ import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import { UserLoginType, UserRolesEnum } from "../constants.js";
 import { User } from "../model/user.model.js";
-import { Profile } from "../model/profile.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
@@ -152,8 +151,7 @@ const loginUser = asyncHandler(async (req, res) => {
   let loggedInUser = await User.findById(user._id).select(
     "-password -refreshToken -emailVerificationToken -emailVerificationExpiry"
   );
-  // const profile = await Profile.find({owner:user._id}).select('firstName lastName');
-  // loggedInUser.push(...profile[0].firstName+' '+profile[0].lastName);
+
 
   // TODO: Add more options to make cookie more secure and reliable
   const options = {
@@ -469,38 +467,6 @@ const assignRole = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "Role changed for the user"));
 });
 
-const getCurrentUser = asyncHandler(async (req, res) => {
-  const userId = req.user._id;
-  const userdt = await Profile.find({ owner: userId }).select(
-    "_id coverImage   isUpdated createdAt   dob phoneNumber memberShipupto"
-  );
-  const usermaster = await User.findById(userId).select(
-    "username email  fullName isProfileUpdate avatar"
-  );
-
-  const userprofiledata = {
-    // profile:userdt[0],
-    // usermst:usermaster
-    username: usermaster.username,
-    email: usermaster.email,
-    isProfileUpdated: usermaster.isProfileUpdate,
-    avatar: usermaster.avatar,
-    firstname: usermaster.fullName.split(" ")[0],
-    lastname: usermaster.fullName.split(" ")[1],
-    isUpdated: userdt[0].isUpdated,
-    _id: userdt[0]._id,
-    dob: userdt[0].dob,
-    phonenumber: userdt[0].phoneNumber,
-    membershipupto: userdt[0].memberShipupto,
-    appdata: userdt[0].createdAt,
-  };
-
-  return res
-    .status(200)
-    .json(
-      new ApiResponse(200, userprofiledata, "Current user fetched successfully")
-    );
-});
 
 const handleSocialLogin = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user?._id);
@@ -565,45 +531,6 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, updatedUser, "Avatar updated successfully"));
 });
 
-const updateProfile = asyncHandler(async (req, res) => {
-  const { updateId, firstname, lastname, dob, phoneNumber } = req.body;
-  const userId = req.user._id;
-
-  // const user = await Profile.findById({_id:userId});
-  // console.log("update profile",req.body);
-  await User.findByIdAndUpdate(userId, {
-    $set: {
-      // // set the newly uploaded avatar
-      // firstName:firstname,
-      // lastName:lastname,
-      isProfileUpdate: true,
-      fullName: firstname + " " + lastname,
-      dateofbirth: dob,
-    },
-  });
-
-  let updatedUser = await Profile.findByIdAndUpdate(
-    updateId,
-
-    {
-      $set: {
-        // // set the newly uploaded avatar
-        // firstName:firstname,
-        // lastName:lastname,
-        dob: dob,
-        phoneNumber: phoneNumber,
-        isUpdated: true,
-      },
-    },
-    { new: true }
-  ).select("isUpdated");
-
-  // console.log(updatedUser,userId)
-
-  return res
-    .status(200)
-    .json(new ApiResponse(200, updatedUser, "Profile updated successfully"));
-});
 
 // login with Google SSO
 
@@ -699,7 +626,7 @@ const googleLogin = asyncHandler(async (req, res) => {
 
       await user.save();
     }
- 
+
 
     const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
       user._id
@@ -709,8 +636,6 @@ const googleLogin = asyncHandler(async (req, res) => {
     let loggedInUser = await User.findById(user._id).select(
       "-password -refreshToken -emailVerificationToken -emailVerificationExpiry"
     );
-    // const profile = await Profile.find({owner:user._id}).select('firstName lastName');
-    // loggedInUser.push(...profile[0].firstName+' '+profile[0].lastName);
 
     // TODO: Add more options to make cookie more secure and reliable
     const options = {
@@ -747,7 +672,6 @@ export {
   assignRole,
   changeCurrentPassword,
   forgotPasswordRequest,
-  getCurrentUser,
   handleSocialLogin,
   loginUser,
   logoutUser,
@@ -757,7 +681,6 @@ export {
   resetForgottenPassword,
   updateUserAvatar,
   verifyEmail,
-  updateProfile,
   resetPassword,
   googleLogin
 };
