@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit,signal } from '@angular/core';
 import { MasterAPIService } from '../../../services/master-api.service';
 import { APIResponse, Work_Item_Type } from '../../../core/app-type-defination';
 import { App_API_Endpoints } from '../../../core/app-api-endpoints';
@@ -10,7 +10,7 @@ import { App_API_Endpoints } from '../../../core/app-api-endpoints';
   templateUrl: './create-work-item.component.html',
 })
 export class CreateWorkItemComponent implements OnInit {
-  workItemLists: Work_Item_Type[] = [];
+  workItemLists= signal<Work_Item_Type[]>([]);
   name = '';
   colorCode = '#087e78';
   isLoading = false;
@@ -29,7 +29,7 @@ export class CreateWorkItemComponent implements OnInit {
     this.errorMessage = '';
     this.api.get(App_API_Endpoints.common.getWorkItems).subscribe({
       next: (response: APIResponse) => {
-        this.workItemLists = response.data as Work_Item_Type[];
+        this.workItemLists.set(response.data as Work_Item_Type[]);
         this.isLoading = false;
       },
       error: (error: { error?: { message?: string } }) => {
@@ -48,8 +48,10 @@ export class CreateWorkItemComponent implements OnInit {
     this.successMessage = '';
     this.api.post(App_API_Endpoints.common.createWorkItem, { name, colorCode: this.colorCode }).subscribe({
       next: (response: APIResponse) => {
-        this.workItemLists = [...this.workItemLists, response.data as Work_Item_Type]
-          .sort((left, right) => left.name.localeCompare(right.name));
+        this.workItemLists.update((workItems: Work_Item_Type[]) => {
+          const updatedWorkItems = [...workItems, response.data as Work_Item_Type];
+          return updatedWorkItems.sort((left, right) => left.name.localeCompare(right.name));
+        });
         this.name = '';
         this.successMessage = `${name} was added.`;
         this.isSaving = false;

@@ -4,11 +4,11 @@
 		<div class="board-controls">
 			<label class="field-label" for="board-project">Project</label>
 			<select id="board-project" class="field-input" [ngModel]="selectedProjectId" (ngModelChange)="selectProject($event)">
-				@for (project of projects(); track project._id) { <option [value]="project._id">{{project.key}} · {{project.name}}</option> }
+				@for (project of projects(); track project._id) { <option [value]="project._id">{{project.key}} | {{project.name}}</option> }
 			</select>
 			<label class="field-label" for="board-sprint">Sprint</label>
 			<select id="board-sprint" class="field-input" [ngModel]="selectedSprintId" (ngModelChange)="selectSprint($event)" [disabled]="!sprints().length">
-				@for (sprint of sprints(); track sprint._id) { @if (sprint.status !== 'Completed') { <option [value]="sprint._id">{{sprint.name}} · {{sprint.status}}</option> } }
+				@for (sprint of sprints(); track sprint._id) { @if (sprint.status !== 'Completed') { <option [value]="sprint._id">{{sprint.name}} | {{sprint.status}}</option> } }
 			</select>
 		</div>
 	</header>

@@ -19,7 +19,7 @@ const routes: Routes = [
   { path: 'my-query', component: MyQueryComponent },
   { path: 'sprints', component: SprintsComponent, canActivate: [roleGuard], data: { roles: AGILE_MANAGEMENT_ROLES, modulePath: '/workitems' } },
   { path: 'unauthorized', component: UnauthorizedComponent, title: 'Unauthorized | Work Items' },
-  { path: 'work-items', component: WorkItemsComponent },
+  { path: 'work-items', component: WorkItemsComponent, canActivate: [roleGuard], data: { roles: AGILE_WORKFLOW_ROLES, modulePath: '/workitems' } },
   { path: 'work-items/:type', component: WorkItemTypeComponent },
   { path: 'work-item-create', component: WorkItemCreateComponent },
   { path: '**', redirectTo: 'boards' }

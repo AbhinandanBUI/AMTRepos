@@ -1,7 +1,7 @@
 <main class="master-data-page">
 	<header class="page-heading">
 		<div><p class="eyebrow">AGILE CONFIGURATION</p><h1>Work item types</h1><p class="page-description">Configure the kinds of work your teams can create.</p></div>
-		<span class="record-count">{{workItemLists.length}} types</span>
+		<span class="record-count">{{workItemLists().length}} types</span>
 	</header>
 
 	@if (errorMessage) { <p class="feedback feedback-error" role="alert">{{errorMessage}}</p> }
@@ -25,9 +25,9 @@
 		<div class="section-heading"><h2 id="type-list-title">Available types</h2><button class="text-button" type="button" (click)="loadWorkItems()" [disabled]="isLoading">Refresh</button></div>
 		@if (isLoading) {
 			<p class="empty-state">Loading work item types…</p>
-		} @else if (workItemLists.length) {
+		} @else if (workItemLists().length) {
 			<div class="record-list">
-				@for (item of workItemLists; track item._id) {
+				@for (item of workItemLists(); track item._id) {
 					<article class="record-row"><span class="color-swatch" [style.backgroundColor]="item.colorCode"></span><strong>{{item.name}}</strong><span class="record-id">{{item.workItemId}}</span></article>
 				}
 			</div>

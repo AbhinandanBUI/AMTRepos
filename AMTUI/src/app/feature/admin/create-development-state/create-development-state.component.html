@@ -1,7 +1,7 @@
 <main class="master-data-page">
 	<header class="page-heading">
 		<div><p class="eyebrow">AGILE CONFIGURATION</p><h1>Development states</h1><p class="page-description">Define the ordered states used to move work through delivery.</p></div>
-		<span class="record-count">{{states.length}} states</span>
+		<span class="record-count">{{states().length}} states</span>
 	</header>
 
 	@if (errorMessage) { <p class="feedback feedback-error" role="alert">{{errorMessage}}</p> }
@@ -26,9 +26,9 @@
 		<div class="section-heading"><h2 id="state-list-title">Workflow order</h2><button class="text-button" type="button" (click)="loadStates()" [disabled]="isLoading">Refresh</button></div>
 		@if (isLoading) {
 			<p class="empty-state">Loading development states…</p>
-		} @else if (states.length) {
+		} @else if (states().length) {
 			<ol class="state-list">
-				@for (state of states; track state._id) {
+				@for (state of states(); track state._id) {
 					<li class="state-row"><span class="order-index">{{state.orderBy}}</span><span class="color-swatch" [style.backgroundColor]="state.colorCode"></span><strong>{{state.name}}</strong><span class="record-id">State {{state.developmentStateId}}</span></li>
 				}
 			</ol>

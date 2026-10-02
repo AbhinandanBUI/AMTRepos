@@ -1,54 +1,73 @@
-<div class="query-wrap">
-	<h3>My Query</h3>
-	<div class="query-editor">
-		<textarea [(ngModel)]="queryText" placeholder="Type queries like: type:Bug assignee:Alice state: " rows="3"></textarea>
+<main class="query-page">
+	<header class="page-heading">
+		<div><p class="eyebrow">WORK TRACKING</p><h1>My Query</h1><p class="page-description">Search persisted stories across your accessible projects.</p></div>
+		<label class="mine-toggle"><input type="checkbox" [(ngModel)]="assignedToMeOnly" (ngModelChange)="setPage(1)" /><span>Assigned to me</span></label>
+	</header>
+
+	@if (loadError || error()) { <p class="notice" role="alert">{{loadError || error()}}</p> }
+
+	<section class="query-panel" aria-label="Issue filters">
+		<label class="query-label" for="query-language">Query</label>
+		<textarea id="query-language" class="query-input" [(ngModel)]="queryText" (ngModelChange)="setPage(1)" placeholder='key:PRJ-12 project:PRJ assignee:me status:"In Progress" priority:High title:login' rows="2"></textarea>
 		<div class="quick-filters">
-			<input class="field-input" placeholder="Title contains" [(ngModel)]="titleQ" />
-			<select class="field-input" [(ngModel)]="typeQ">
-				<option value="">Any type</option>
-				<option *ngFor="let t of types" [value]="t.Name">{{t.Name}}</option>
+			<input class="field-input title-filter" aria-label="Title contains" placeholder="Title contains" [(ngModel)]="titleQ" (ngModelChange)="setPage(1)" />
+			<select class="field-input" aria-label="Project" [(ngModel)]="projectQ" (ngModelChange)="setPage(1)">
+				<option value="">Any project</option>
+				@for (project of projects; track project._id) { <option [value]="project.key">{{project.key}} · {{project.name}}</option> }
 			</select>
-			<select class="field-input" [(ngModel)]="assigneeQ">
+			<select class="field-input" aria-label="Assignee" [(ngModel)]="assigneeQ" (ngModelChange)="setPage(1)">
 				<option value="">Any assignee</option>
-				<option *ngFor="let u of users" [value]="u.Name">{{u.Name}}</option>
+				@for (assignee of assignees; track assignee) { <option [value]="assignee">{{assignee}}</option> }
 			</select>
-			<select class="field-input" [(ngModel)]="stateQ">
-				<option value="">Any state</option>
-				<option *ngFor="let s of stateOptions" [value]="s">{{s}}</option>
+			<select class="field-input" aria-label="Status" [(ngModel)]="statusQ" (ngModelChange)="setPage(1)">
+				<option value="">Any status</option>
+				@for (status of statuses; track status) { <option [value]="status">{{status}}</option> }
 			</select>
-			<button class="btn btn-primary" (click)="clear()">Clear</button>
+			<select class="field-input" aria-label="Priority" [(ngModel)]="priorityQ" (ngModelChange)="setPage(1)">
+				<option value="">Any priority</option>
+				@for (priority of priorities; track priority) { <option [value]="priority">{{priority}}</option> }
+			</select>
+			<button class="btn btn-quiet" type="button" (click)="clear()">Clear filters</button>
 		</div>
-	</div>
+	</section>
 
-	<div style="margin-top:0.75rem; font-weight:600">Results ({{totalResults}})</div>
-		<div class="results">
-		<div *ngFor="let it of pagedItems" class="result-row">
-			<div class="r-title">{{it.title}}</div>
-			<div class="r-meta" style="display:flex; gap:0.6rem; align-items:center">
-				<div class="avatar" [style.background]="getAssigneeColor(it.assignedTo)" style="width:24px;height:24px;border-radius:8px;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700">{{getInitials(it.assignedTo)}}</div>
-				<div style="color:#64748b">{{it.assignedTo}}</div>
-				<div style="margin-left:auto; display:flex; gap:0.4rem; align-items:center">
-					<span class="type-dot" [style.background]="getTypeColor(it.type)" style="width:10px;height:10px;border-radius:3px;display:inline-block"></span>
-					<span style="color:#64748b">{{it.type}}</span>
-					<span class="state-badge" [style.background]="getStateColor(it.state)" style="margin-left:8px">{{it.state}}</span>
-				</div>
+	<section class="results-panel" aria-live="polite">
+		<header class="results-heading"><h2>Results</h2><span>{{totalResults}}</span></header>
+		@if (isLoading) {
+			<p class="empty-state">Loading project issues…</p>
+		} @else if (pagedIssues.length) {
+			<div class="result-list">
+				@for (issue of pagedIssues; track issue._id) {
+					<article class="result-row">
+						<div class="result-title"><span class="issue-key">{{issue.issueKey}}</span><strong>{{issue.title}}</strong></div>
+						<div class="result-meta">
+							<span class="project-tag">{{issue.projectKey}}</span>
+							<span class="assignee">{{getInitials(getAssigneeName(issue))}} · {{getAssigneeName(issue)}}</span>
+							<span>{{issue.storyPoints}} pts</span>
+							<span class="status-tag">{{issue.status}}</span>
+							<span class="priority-pill" [class]="'priority-pill priority--' + issue.priority.toLowerCase()">{{issue.priority}}</span>
+						</div>
+					</article>
+				}
 			</div>
-		</div>
-		<div *ngIf="totalResults===0" class="panel-empty">No matches</div>
-	</div>
+		} @else if (!projects.length) {
+			<p class="empty-state">No accessible projects were found.</p>
+		} @else {
+			<p class="empty-state">No issues match the current query and filters.</p>
+		}
+	</section>
 
-	<div class="pagination" *ngIf="totalResults>0">
-		<div class="pager-left">Showing {{ (currentPage-1)*pageSize + (pagedItems.length?1:0) }} - {{ (currentPage-1)*pageSize + pagedItems.length }} of {{totalResults}}</div>
-		<div class="pager-controls">
-			<button class="btn" (click)="prevPage()" [disabled]="currentPage===1">Prev</button>
-			<button class="btn" *ngFor="let p of pages" [class.active]="p===currentPage" (click)="setPage(p)">{{p}}</button>
-			<button class="btn" (click)="nextPage()" [disabled]="currentPage===totalPages">Next</button>
-			<select class="field-input" [(ngModel)]="pageSize" (ngModelChange)="setPageSize($event)">
-				<option [value]="5">5</option>
-				<option [value]="8">8</option>
-				<option [value]="12">12</option>
-				<option [value]="20">20</option>
-			</select>
-		</div>
-	</div>
-</div>
+	@if (!isLoading && totalResults > 0) {
+		<nav class="pagination" aria-label="Query results pages">
+			<p>Showing {{(currentPage - 1) * pageSize + 1}}–{{(currentPage - 1) * pageSize + pagedIssues.length}} of {{totalResults}}</p>
+			<div class="pager-controls">
+				<button class="btn" type="button" (click)="prevPage()" [disabled]="currentPage === 1">Previous</button>
+				@for (page of pages; track page) { <button class="btn page-button" type="button" [class.active]="page === currentPage" (click)="setPage(page)">{{page}}</button> }
+				<button class="btn" type="button" (click)="nextPage()" [disabled]="currentPage === totalPages">Next</button>
+				<select class="field-input page-size" aria-label="Results per page" [ngModel]="pageSize" (ngModelChange)="setPageSize($event)">
+					@for (size of [5, 8, 12, 20]; track size) { <option [ngValue]="size">{{size}} per page</option> }
+				</select>
+			</div>
+		</nav>
+	}
+</main>
