@@ -8,7 +8,7 @@ export const ISSUE_PRIORITIES = ['Low', 'Medium', 'High', 'Blocker'] as const;
 export type IssuePriority = (typeof ISSUE_PRIORITIES)[number];
 
 export const AGILE_WORKFLOW_ROLES = ['ADMIN', 'Admin', 'ScrumMaster', 'ProductOwner', 'Developer'] as const;
-export const AGILE_MANAGEMENT_ROLES = ['ADMIN', 'Admin', 'ScrumMaster', 'ProductOwner'] as const;
+export const AGILE_MANAGEMENT_ROLES = ['ADMIN', 'Admin', 'ScrumMaster', 'ProductOwner','Developer'] as const;
 export const TEST_USER_ADMIN_ROLES = ['ADMIN', 'Admin'] as const;
 
 export interface AgileUser {
