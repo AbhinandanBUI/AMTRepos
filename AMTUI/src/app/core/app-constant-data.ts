@@ -38,16 +38,18 @@ export const Work_Item_States = [
     { Id: 23, Name: 'Deploy In Production Server', OrderBy: 23 },
 ]
 
-export const  Work_Item_Priority =[
-    {Id:1,Name:'Low',OrderBy:1},
-    {Id:2,Name:'Medium',OrderBy:2},
-    {Id:3,Name:'High',OrderBy:3},
+export const Work_Item_Priority = [
+    { Id: 1, Name: 'Low', OrderBy: 1 },
+    { Id: 2, Name: 'Medium', OrderBy: 2 },
+    { Id: 3, Name: 'High', OrderBy: 3 },
 ]
-export const  Work_Item_Status =[
-    {Id:1,Name:'Planned',OrderBy:1},
-    {Id:2,Name:'In progress',OrderBy:2},
-    {Id:3,Name:'Completed',OrderBy:3},
-] 
+export const Work_Item_Status = [
+    { Id: 1, Name: 'Planned', OrderBy: 1 },
+    { Id: 2, Name: 'In progress', OrderBy: 2 },
+    { Id: 3, Name: 'Completed', OrderBy: 3 },
+]
+export const pageSizeOptions = [5, 10, 20, 40, 100];
+
 export const APP_User_Data = [
     { Id: 1, Name: 'John Doe', Email: 'john.doe@example.com', Designation: 'Software Engineer', Department: 'Development', Role: 'Developer', Status: 'Active' },
     { Id: 2, Name: 'Aarav Sharma', Email: 'aarav.sharma@example.com', Designation: 'Senior Developer', Department: 'Development', Role: 'Developer', Status: 'Active' },

@@ -1,9 +1,10 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { forkJoin, of } from 'rxjs';
 import { catchError, map, switchMap } from 'rxjs/operators';
 import { AuthService } from '../../../services/StorageServices/auth-service.service';
 import { AgileService } from '../agile.service';
 import { AgileIssue, AgileProject, ISSUE_PRIORITIES, ISSUE_STATUSES } from '../agile.models';
+import { pageSizeOptions } from '../../../core/app-constant-data';
 
 interface QueryIssue extends AgileIssue {
   projectKey: string;
@@ -21,6 +22,7 @@ type QueryTokens = Partial<Record<'key' | 'project' | 'assignee' | 'status' | 'p
 export class MyQueryComponent implements OnInit {
   private readonly agile = inject(AgileService);
   private readonly auth = inject(AuthService);
+  pageSizeOptions = signal<number[]>([5]);
   queryText = '';
   titleQ = '';
   projectQ = '';
@@ -33,10 +35,11 @@ export class MyQueryComponent implements OnInit {
   readonly statuses = ISSUE_STATUSES;
   readonly priorities = ISSUE_PRIORITIES;
   isLoading = false;
-  pageSize = 8;
+  pageSize = signal<number>(5);
   currentPage = 1;
 
   ngOnInit(): void {
+    this.pageSizeOptions.set(pageSizeOptions);
     this.loadIssues();
   }
 
@@ -73,12 +76,12 @@ export class MyQueryComponent implements OnInit {
   }
 
   get totalResults(): number { return this.filteredIssues.length; }
-  get totalPages(): number { return Math.max(1, Math.ceil(this.totalResults / this.pageSize)); }
+  get totalPages(): number { return Math.max(1, Math.ceil(this.totalResults / this.pageSize())); }
   get pages(): number[] { return Array.from({ length: this.totalPages }, (_, index) => index + 1); }
   get pagedIssues(): QueryIssue[] {
     const safePage = Math.min(this.currentPage, this.totalPages);
-    const start = (safePage - 1) * this.pageSize;
-    return this.filteredIssues.slice(start, start + this.pageSize);
+    const start = (safePage - 1) * this.pageSize();
+    return this.filteredIssues.slice(start, start + this.pageSize());
   }
 
   parseQuery(query: string): { tokens: QueryTokens; freeText: string } {
@@ -105,7 +108,7 @@ export class MyQueryComponent implements OnInit {
   setPageSize(size: number | string): void {
     const parsedSize = Number(size);
     if (!Number.isFinite(parsedSize) || parsedSize < 1) return;
-    this.pageSize = parsedSize;
+    this.pageSize.set(parsedSize);
     this.currentPage = 1;
   }
 
