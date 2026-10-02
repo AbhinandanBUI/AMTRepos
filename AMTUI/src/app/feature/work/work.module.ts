@@ -14,10 +14,11 @@ import { BacklogsComponent } from './backlogs/backlogs.component';
 import { WorkItemCreateComponent } from './work-item-create/work-item-create.component';
 import { WorkItemTypeComponent } from './work-item-type/work-item-type.component';
 import { StoryCardComponent } from '../../shared/components/agile/story-card/story-card.component';
+import { SprintCapacityComponent } from './sprint-capacity/sprint-capacity.component';
 
 
 @NgModule({
-  declarations: [WorkComponent,BacklogsComponent, BoardsComponent, MyQueryComponent, SprintsComponent, WorkItemsComponent, WorkItemCreateComponent, WorkItemTypeComponent],
+  declarations: [WorkComponent,BacklogsComponent, BoardsComponent, MyQueryComponent, SprintsComponent, WorkItemsComponent, WorkItemCreateComponent, WorkItemTypeComponent, SprintCapacityComponent],
   imports: [
     CommonModule,
     FormsModule,
