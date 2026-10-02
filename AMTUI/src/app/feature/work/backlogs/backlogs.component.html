@@ -1,119 +1,61 @@
-<div class="backlogs-page" style="display:grid; grid-template-columns: 260px 1fr; gap:1rem;">
-    <aside class="types-list" style="border-right:1px solid #eef2f7; padding-right:0.75rem;">
-        <h3 style="margin-top:0;">Work Item Types</h3>
-        <ul style="list-style:none; padding-left:0; margin:0;">
-            <li *ngFor="let t of workItemTypes" style="margin:0.25rem 0;">
-                <button class="btn type-btn"
-                    style="width:100%; text-align:left; background:transparent; border:1px solid transparent; padding:0.5rem; display:flex; gap:0.6rem; align-items:center;"
-                    [class.active]="selectedType===t" (click)="selectType(t)">
-                    <span class="type-dot" [style.background]="getTypeColor(t.Name)"></span>
-                    <span>{{t.Name}}</span>
-                </button>
-            </li>
-        </ul>
-    </aside>
+<main class="backlogs-page">
+	<header class="page-heading">
+		<div><p class="eyebrow">DELIVERY</p><h1>Backlog</h1><p class="page-description">Stories not yet added to a sprint.</p></div>
+		@if (projects().length) {
+			<label class="project-picker">Project
+				<select class="field-input" [ngModel]="selectedProjectId" (ngModelChange)="selectProject($event)">
+					@for (project of projects(); track project._id) { <option [value]="project._id">{{project.key}} · {{project.name}}</option> }
+				</select>
+			</label>
+		}
+	</header>
 
-    <section class="backlog-list">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
-            <div>
-                <h2 style="margin:0;">{{selectedType?.Name || 'Backlog'}}</h2>
-                <div class="subtitle" style="color:#6b7280;">Backlog items for {{selectedType?.Name}}</div>
-            </div>
-            <div>
-                <button class="btn btn-primary">New {{selectedType?.Name || 'Item'}}</button>
-            </div>
-        </div>
+	@if (error()) { <p class="notice notice-error" role="alert">{{error()}}</p> }
 
-                <div class="filters" style="display:flex; flex-direction:column; gap:0.5rem; margin-bottom:0.75rem;">
-                        <div style="display:flex; gap:0.5rem; align-items:center;">
-                            <input class="field-input" placeholder="Search title" [(ngModel)]="filter.q" style="flex:1;" />
-                            <input class="field-input" placeholder="SP min" [(ngModel)]="filter.minSP" style="width:80px;" />
-                            <input class="field-input" placeholder="SP max" [(ngModel)]="filter.maxSP" style="width:80px;" />
-                            <button class="btn" (click)="filter={ q:'', assignee:'', state:'', minSP:null, maxSP:null }">Clear</button>
-                        </div>
+	@if (!projects().length && !isLoading) {
+		<section class="empty-state"><h2>No accessible projects</h2><p>Ask a project lead to add you to a project before viewing its backlog.</p></section>
+	} @else {
+		<section class="backlog-panel">
+			<div class="backlog-toolbar">
+				<div class="view-switch" role="group" aria-label="Backlog assignment filter">
+					<button type="button" [class.is-selected]="assignedToMeOnly" (click)="assignedToMeOnly = true">Assigned to me <span>{{assignedBacklogCount}}</span></button>
+					<button type="button" [class.is-selected]="!assignedToMeOnly" (click)="assignedToMeOnly = false">All backlog</button>
+				</div>
+				<input class="field-input search-field" aria-label="Search backlog" placeholder="Search by key or title" [(ngModel)]="searchText" />
+			</div>
 
-                        <div style="display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap" (click)="closeDropdowns()">
-                            <div style="display:flex; gap:0.4rem; align-items:center; position:relative;">
-                                <div style="font-size:0.9rem; color:#374151; margin-right:6px">Assignee:</div>
-                                <div class="custom-select" (click)="$event.stopPropagation()">
-                                    <button class="select-toggle" (click)="toggleAssignee()">
-                                        {{ filter.assignee || 'All assignees' }}
-                                        <span class="caret">▾</span>
-                                    </button>
-                                    <div class="select-panel" *ngIf="assigneeOpen">
-                                        <div class="select-option" (click)="selectAssignee('')">All assignees</div>
-                                        <div class="select-option" *ngFor="let u of users" (click)="selectAssignee(u.Name)">
-                                            <span class="chip-dot" [style.background]="getAssigneeColor(u.Name)"></span>
-                                            {{u.Name}}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+			@if (!isLoading && selectedProject) {
+				<div class="sprint-target-row">
+					<label for="target-sprint">Add selected stories to</label>
+					<select id="target-sprint" class="field-input" [(ngModel)]="selectedSprintId" [disabled]="!availableSprints.length">
+						@for (sprint of availableSprints; track sprint._id) { <option [value]="sprint._id">{{sprint.name}} · {{sprint.status}}</option> }
+					</select>
+					<span class="workflow-note">Adding a story moves it to To Do on the board.</span>
+				</div>
+			}
 
-                            <div style="display:flex; gap:0.4rem; align-items:center; position:relative;">
-                                <div style="font-size:0.9rem; color:#374151; margin-right:6px">State:</div>
-                                <div class="custom-select" (click)="$event.stopPropagation()">
-                                    <button class="select-toggle" (click)="toggleState()">
-                                        {{ filter.state || 'All states' }}
-                                        <span class="caret">▾</span>
-                                    </button>
-                                    <div class="select-panel" *ngIf="stateOpen">
-                                        <div class="select-option" (click)="selectState('')">All states</div>
-                                        <div class="select-option" *ngFor="let s of availableStates" (click)="selectState(s)">
-                                            <span class="chip-badge" [style.background]="getStateColor(s)"></span>
-                                            {{s}}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                </div>
-
-        <div *ngIf="filteredItems && filteredItems.length; else empty">
-            <div
-                style="display:grid; grid-template-columns: 1fr 120px 120px 80px; gap:0.5rem; font-weight:700; padding:0.5rem 0; border-bottom:1px solid #eef2f7;">
-                <div>Title</div>
-                <div>Assignee</div>
-                <div>State</div>
-                <div>SP</div>
-            </div>
-            <div *ngFor="let it of filteredItems"
-                style="display:grid; grid-template-columns: 1fr 160px 140px 80px; gap:0.5rem; padding:0.6rem 0; border-bottom:1px dashed #f1f5f9; align-items:center;">
-                <div>
-                    <div style="font-weight:600">{{it.title}}</div>
-                </div>
-                <div>
-                    <div class="assignee-cell">
-                        <div class="avatar" [style.background]="getAssigneeColor(it.assignee)">{{
-                            getInitials(it.assignee) }}</div>
-                        <div class="assignee-name">{{it.assignee}}</div>
-                    </div>
-                </div>
-                <div>
-                    <span class="state-badge" [style.background]="getStateColor(it.state)">{{it.state}}</span>
-                </div>
-                <div>{{it.storyPoint}}</div>
-            </div>
-        </div>
-
-        <ng-template #empty>
-            <div class="panel-empty">No backlog items yet.</div>
-        </ng-template>
-    </section>
-</div>
-
-
-<button
-    type="button"
-    class="btn btn-primary"
-    (click)="saveData()"
->
-    save data
-</button>
-<button
-    type="button"
-    class="btn btn-primary"
-    (click)="getDate()"
->
-    getDate 
-</button>
+			@if (isLoading) {
+				<p class="empty-state">Loading your project backlog…</p>
+			} @else if (backlogIssues.length) {
+				<div class="issue-list">
+					@for (issue of backlogIssues; track issue._id) {
+						<article class="issue-row">
+							<div class="issue-main"><span class="issue-key">{{issue.issueKey}}</span><strong>{{issue.title}}</strong><span class="priority-pill" [class]="'priority-pill priority--' + issue.priority.toLowerCase()">{{issue.priority}}</span></div>
+							<div class="issue-meta">
+								<span>{{issue.storyPoints}} pts</span>
+								<span class="assignee-name">{{getAssigneeName(issue)}}</span>
+								<span class="status-tag">{{issue.status}}</span>
+								<button class="btn btn-primary" type="button" [disabled]="!selectedSprintId || isAssigningIssueId === issue._id" (click)="assignToSprint(issue)">{{isAssigningIssueId === issue._id ? 'Adding…' : 'Add to sprint'}}</button>
+							</div>
+						</article>
+					}
+				</div>
+			} @else if (assignedToMeOnly && assignedBacklogCount === 0) {
+                {{backlogIssues | json}}
+				<section class="empty-state"><h2>No backlog items assigned to you</h2><p>Ask your project lead to assign a story, or switch to All backlog to browse project work.</p></section>
+			} @else {
+				<section class="empty-state"><h2>No matching backlog items</h2><p>Try another search or check the other assignment view.</p></section>
+			}
+		</section>
+	}
+</main>

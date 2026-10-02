@@ -1,63 +1,126 @@
-import { Component } from '@angular/core';
-import { New_Work_Items, APP_User_Data } from '../../../core/app-constant-data';
-
+import { Component, inject, OnInit } from '@angular/core';
+import { CdkDragDrop } from '@angular/cdk/drag-drop';
+import { forkJoin } from 'rxjs';
+import { AgileService } from '../agile.service';
+import { AgileIssue, AgileProject, AgileSprint, AgileUser, ISSUE_PRIORITIES, ISSUE_STATUSES, IssueStatus } from '../agile.models';
 
 @Component({
- standalone: false,
+  standalone: false,
   selector: 'app-boards',
   styleUrl: './boards.component.css',
   templateUrl: './boards.component.html',
 })
-export class BoardsComponent {
-  lanes = ['To Do', 'In Progress', 'Review', 'Done'];
-  workItemTypes = (New_Work_Items || []).slice();
-  users = (APP_User_Data || []).slice();
-  cards: any[] = [];
-  filter: any = { q: '', type: '' };
+export class BoardsComponent implements OnInit {
+  private readonly agile = inject(AgileService);
+  readonly projects = this.agile.projects;
+  readonly selectedProject = this.agile.selectedProject;
+  readonly sprints = this.agile.sprints;
+  readonly issues = this.agile.issues;
+  readonly error = this.agile.error;
+  readonly priorities = ISSUE_PRIORITIES;
+  readonly lanes = ISSUE_STATUSES.filter((status) => status !== 'Backlog');
+  selectedProjectId = '';
+  selectedSprintId = '';
+  searchText = '';
+  priorityFilter = '';
 
-  private avatarColors = ['#ef4444','#f97316','#f59e0b','#eab308','#84cc16','#22c55e','#06b6d4','#0ea5a4','#3b82f6','#6366f1','#a78bfa','#ec4899'];
-  private avatarPalette = ['#2563eb', '#0ea5e9', '#f97316', '#10b981', '#7c3aed', '#ef4444', '#06b6d4', '#f59e0b', '#a78bfa', '#7dd3fc'];
-  private typeColorMap: Record<string,string> = {
-    'Bug':'#ef4444','ChangeRequest':'#f97316','Epic':'#8b5cf6','Feature':'#3b82f6','Issue':'#fb7185','Observation':'#f59e0b','Risk':'#f43f5e','Subtask':'#06b6d4','Task':'#10b981','Test':'#6366f1','TestCase':'#7c3aed','UserStory':'#0ea5a4','User Story':'#0ea5a4'
-  };
-
-  getAssigneeColor(name: string){ if (!name) return '#cbd5e1'; let s=0; for(let i=0;i<name.length;i++) s=(s*31+name.charCodeAt(i))>>>0; return this.avatarPalette[s%this.avatarPalette.length]; }
-  getInitials(name: string){ if(!name) return ''; const p=name.split(' ').filter(Boolean); return p.length===1? p[0].charAt(0).toUpperCase() : (p[0].charAt(0)+p[1].charAt(0)).toUpperCase(); }
-  getTypeColor(typeName:string){ return this.typeColorMap[typeName] || '#94a3b8'; }
-
-  constructor() {
-    this.initSampleCards();
-  }
-
-  initSampleCards() {
-    // create 9 sample cards across lanes
-    const types = this.workItemTypes.length ? this.workItemTypes : [{ Name: 'Task' }];
-    for (let i = 1; i <= 9; i++) {
-      const t = types[i % types.length];
-      const lane = this.lanes[i % this.lanes.length];
-      const assignee = this.users[i % this.users.length]?.Name || 'Unassigned';
-      this.cards.push({ id: `C${i}`, title: `${t.Name} ${i}`, type: t.Name, lane, assignee, points: (i%5)+1 });
-    }
-  }
-
-  get cardsByLane() {
-    const f = this.filter || {};
-    return this.lanes.map(l => {
-      let list = (this.cards || []).filter(c => c.lane === l);
-      if (f.q) { const q = String(f.q).toLowerCase(); list = list.filter(c => (c.title||'').toLowerCase().includes(q)); }
-      if (f.type) { list = list.filter(c => c.type === f.type); }
-      return { lane: l, cards: list };
+  ngOnInit(): void {
+    this.agile.loadProjects().subscribe({
+      next: (projects) => {
+        if (projects.length) this.selectProject(projects[0]._id);
+      },
     });
   }
 
-  moveCard(card: any, direction: 'left' | 'right') {
-    const idx = this.lanes.indexOf(card.lane);
-    if (idx === -1) return;
-    const next = direction === 'right' ? Math.min(idx + 1, this.lanes.length - 1) : Math.max(idx - 1, 0);
-    card.lane = this.lanes[next];
+  get selectedSprint(): AgileSprint | undefined {
+    return this.sprints().find((sprint) => sprint._id === this.selectedSprintId);
   }
 
-  openCard(card: any) {
-    alert(`Open card ${card.id}: ${card.title}`);
+  get cardsByLane(): Array<{
+    status: IssueStatus;
+    count: number;
+    buckets: Array<{ id: string; name: string; issues: AgileIssue[] }>;
+  }> {
+    const query = this.searchText.trim().toLowerCase();
+    return this.lanes.map((status) => {
+      const buckets = [
+        ...this.getProjectMembers(this.selectedProject()).map((member) => ({
+          id: member._id,
+          name: member.fullName,
+          issues: this.issuesForBucket(status, member._id, query),
+        })),
+        { id: 'unassigned', name: 'Unassigned', issues: this.issuesForBucket(status, null, query) },
+      ];
+      return { status, buckets, count: buckets.reduce((total, bucket) => total + bucket.issues.length, 0) };
+    });
+  }
+
+  getProjectMembers(project: AgileProject | null): AgileUser[] {
+    return project?.members.filter((member): member is AgileUser => typeof member !== 'string') || [];
+  }
+
+  selectProject(projectId: string): void {
+    this.selectedProjectId = projectId;
+    this.selectedSprintId = '';
+    const project = this.projects().find((item) => item._id === projectId) || null;
+    this.agile.selectedProject.set(project);
+    if (!project) {
+      this.agile.clearProjectState();
+      return;
+    }
+
+    forkJoin({
+      sprints: this.agile.loadSprints(project._id),
+      issues: this.agile.loadIssues(project._id),
+    }).subscribe({
+      next: ({ sprints }) => {
+        const selected = sprints.find((sprint) => sprint.status === 'Active') ||
+          sprints.find((sprint) => sprint.status === 'Planned');
+        this.selectedSprintId = selected?._id || '';
+      },
+    });
+  }
+
+  selectSprint(sprintId: string): void {
+    this.selectedSprintId = sprintId;
+  }
+
+  dropIssue(event: CdkDragDrop<AgileIssue[]>, status: IssueStatus): void {
+    if (event.previousContainer === event.container) return;
+    const issue = event.item.data as AgileIssue;
+    this.agile.updateIssueStatus(issue._id, status).subscribe({
+      error: () => this.reloadIssues(),
+    });
+  }
+
+  getAssigneeName(issue: AgileIssue): string {
+    return issue.assigneeRef?.fullName || 'Unassigned';
+  }
+
+  getInitials(name: string): string {
+    return name.split(' ').filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
+  }
+
+  private getSprintId(issue: AgileIssue): string | null {
+    return typeof issue.sprintRef === 'string' ? issue.sprintRef : issue.sprintRef?._id || null;
+  }
+
+  private getAssigneeId(issue: AgileIssue): string | null {
+    return issue.assigneeRef?._id || null;
+  }
+
+  private issuesForBucket(status: IssueStatus, assigneeId: string | null, query: string): AgileIssue[] {
+    return this.issues().filter((issue) => {
+      const inSelectedSprint = this.getSprintId(issue) === this.selectedSprintId;
+      const matchesStatus = issue.status === status;
+      const matchesAssignee = this.getAssigneeId(issue) === assigneeId;
+      const matchesQuery = !query || `${issue.issueKey} ${issue.title}`.toLowerCase().includes(query);
+      const matchesPriority = !this.priorityFilter || issue.priority === this.priorityFilter;
+      return inSelectedSprint && matchesStatus && matchesAssignee && matchesQuery && matchesPriority;
+    });
+  }
+
+  private reloadIssues(): void {
+    if (this.selectedProjectId) this.agile.loadIssues(this.selectedProjectId).subscribe();
   }
 }

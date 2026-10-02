@@ -10,7 +10,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MasterAPIService } from '../../../../services/master-api.service';
 import { App_API_Endpoints } from '../../../../core/app-api-endpoints';
 import { LocalStorageService } from '../../../../services/StorageServices/local-storage.service';
-import { UserProfile } from '../../../../core/app-type-defination';
+import { AuthService, AuthenticatedProfile } from '../../../../services/StorageServices/auth-service.service';
 declare const google: any;
 
 @Component({
@@ -34,9 +34,12 @@ export class SigninFormComponent implements OnInit {
   showPassword = false;
   loginForm: FormGroup = [] as unknown as FormGroup;
   clientId: string = '';
+  loginError = '';
+  isSubmitting = false;
 
   constructor(private fb: FormBuilder, private _router: Router, private _api: MasterAPIService,
     private _localStorage: LocalStorageService,
+    private _auth: AuthService,
     private ngZone: NgZone
   ) { }
 
@@ -57,9 +60,33 @@ export class SigninFormComponent implements OnInit {
     this.showPassword = !this.showPassword;
   }
   onSignIn() {
-    console.log('login form value', this.loginForm.value);
+    this.loginError = '';
+    if (this.loginForm.invalid) {
+      this.loginForm.markAllAsTouched();
+      return;
+    }
 
-
+    this.isSubmitting = true;
+    this._api.post(App_API_Endpoints.users.login, this.loginForm.value).subscribe({
+      next: (response) => {
+        const result = response.data;
+        const user = result.user;
+        this._localStorage.setToken(result.accessToken);
+        this._auth.setUser({
+          email: user.email,
+          name: user.fullName,
+          profileUrl: user.avatar?.url || '',
+          id: user._id,
+          role: user.role,
+        });
+        this._router.navigateByUrl('/timesheet/overview');
+        this.isSubmitting = false;
+      },
+      error: (error: { error?: { message?: string } }) => {
+        this.loginError = error.error?.message || 'Sign-in failed. Check your email and password.';
+        this.isSubmitting = false;
+      },
+    });
   }
   ngAfterViewInit(): void {
     this.getClientId()
@@ -79,7 +106,6 @@ export class SigninFormComponent implements OnInit {
             callback: (response: any) => {
 
               this.ngZone.run(() => {
-                debugger;
                 const body = {
                   credential: response.credential
                 }
@@ -88,20 +114,18 @@ export class SigninFormComponent implements OnInit {
                   .subscribe({
                     next: (result) => {
                       if (result.success && result.statusCode === 200) {
-                        this._localStorage.clear();
                         this._localStorage.setToken(result.data.accessToken);
                         let usr = result.data.user;
                         const user = {
                           email: usr.email,
                           name: usr.fullName,
                           profileUrl: usr.avatar.url,
-                          id: usr._id
-                        } as UserProfile;
-                        this._localStorage.setUser(user);
+                          id: usr._id,
+                          role: usr.role
+                        } as AuthenticatedProfile;
+                        this._auth.setUser(user);
                         this._router.navigateByUrl('/timesheet/overview');
 
-                      } else {
-                        this._localStorage.clear();
                       }
 
                     },

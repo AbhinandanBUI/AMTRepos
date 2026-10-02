@@ -1,7 +1,7 @@
-import { Service } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { UserProfile } from '../../core/app-type-defination';
-import { Router } from '@angular/router';
-  @Service()
+
+@Injectable({ providedIn: 'root' })
 export class LocalStorageService {
 
     private readonly TOKEN_KEY = 'accessToken';

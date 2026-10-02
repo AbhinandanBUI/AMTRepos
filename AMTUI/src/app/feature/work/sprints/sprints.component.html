@@ -1,80 +1,164 @@
-<div class="sprints-page" style="display:grid; grid-template-columns: 260px 1fr; gap:1rem;">
-	<aside style="padding-right:0.5rem; border-right:1px solid #eef6ff;">
-		<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
-			<h3 style="margin:0;">Sprints</h3>
-			<button class="btn" (click)="toggleCreate()">New</button>
+<main class="sprints-page">
+	<header class="page-heading">
+		<div>
+			<p class="eyebrow">DELIVERY</p>
+			<h1>Sprints</h1>
 		</div>
-		<ul style="list-style:none; padding:0; margin:0;">
-			<li *ngFor="let s of sprints" style="margin-bottom:0.4rem;">
-				<button class="btn" style="width:100%; text-align:left; background:transparent;" (click)="selectSprint(s)">{{s.name}} <div style="color:#64748b; font-size:0.85rem">{{s.start | date:'shortDate'}} - {{s.end | date:'shortDate'}}</div></button>
-			</li>
-		</ul>
-	</aside>
+		<div class="project-controls">
+			@if (projects().length) {
+				<label class="field-label" for="project-select">Project</label>
+				<select id="project-select" class="field-input" [ngModel]="selectedProject()?._id || ''" (ngModelChange)="selectProject($event)">
+					@for (project of projects(); track project._id) {
+						<option [value]="project._id">{{project.key}} · {{project.name}}</option>
+					}
+				</select>
+			}
+			<button class="btn btn-primary" type="button" (click)="showProjectForm = !showProjectForm">{{showProjectForm ? 'Close' : 'New project'}}</button>
+		</div>
+	</header>
 
-	<section>
-		<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:1rem;">
-			<div>
-				<h2 style="margin:0;">{{selectedSprint?.name || 'No Sprint Selected'}}</h2>
-				<div class="subtitle">Capacity: {{selectedSprint?.capacity || '-' }} • Velocity: {{selectedSprint?.velocity || '-'}}</div>
+	@if (error()) {
+		<p class="notice notice-error" role="alert">{{error()}}</p>
+	}
+
+	@if (showProjectForm) {
+		<section class="form-panel">
+			<h2>Create project</h2>
+			<div class="form-grid">
+				<label>Project name<input class="field-input" [(ngModel)]="projectName" maxlength="120" /></label>
+				<label>Project key<input class="field-input" [(ngModel)]="projectKey" maxlength="10" /></label>
+				<label class="field-wide">Description<textarea class="field-input" [(ngModel)]="projectDescription" rows="2" maxlength="2000"></textarea></label>
 			</div>
-			<div>
-				<div *ngIf="showCreate" style="background:#fff; padding:0.6rem; border-radius:8px; box-shadow:0 6px 18px rgba(2,6,23,0.06);">
-					<input placeholder="Sprint name" [(ngModel)]="newSprintName" class="field-input" style="display:block; margin-bottom:0.5rem;" />
-					<input type="date" [(ngModel)]="newSprintStart" class="field-input" style="display:inline-block; margin-right:0.5rem;" />
-					<input type="date" [(ngModel)]="newSprintEnd" class="field-input" style="display:inline-block;" />
-					<div style="margin-top:0.6rem; margin-bottom:0.4rem; font-weight:700;">Capacities (per role)</div>
-					<div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:0.5rem;">
-						<div *ngFor="let r of roles" style="min-width:110px;">
-							<div style="font-size:0.85rem; color:#64748b; margin-bottom:0.15rem;">{{r}}</div>
-							<input type="number" [(ngModel)]="newSprintCapacities[r]" class="field-input" placeholder="0" style="width:100%;" name="cap_{{r}}" />
+			<fieldset class="member-picker">
+				<legend>Project members</legend>
+				<p class="field-help">The project creator and lead are included automatically.</p>
+				@if (assignableUsers().length) {
+					<div class="member-options">
+						@for (user of assignableUsers(); track user._id) {
+							<label class="member-option"><input type="checkbox" [checked]="isMemberSelected(user._id)" (change)="toggleProjectMember(user._id, $any($event.target).checked)" /><span><strong>{{user.fullName}}</strong><small>{{user.email}} · {{user.role}}</small></span></label>
+						}
+					</div>
+				} @else { <p class="field-help">No active users are available to assign.</p> }
+			</fieldset>
+			<button class="btn btn-primary" type="button" (click)="createProject()">Create project</button>
+		</section>
+	}
+
+	@if (!projects().length && !showProjectForm) {
+		<section class="empty-state"><h2>No projects yet</h2><p>Create a project to start organizing sprints and stories.</p></section>
+	} @else if (selectedProject(); as project) {
+		<div class="project-summary"><span class="project-key">{{project.key}}</span><span>{{project.name}}</span><span class="summary-description">{{project.description || 'No project description'}}</span></div>
+		<section class="team-section">
+			<div class="section-heading"><div><h2>Project team</h2><p class="field-help">{{getProjectMembers(project).length}} assigned member{{getProjectMembers(project).length === 1 ? '' : 's'}}</p></div><button class="btn btn-quiet" type="button" (click)="saveProjectMembers()" [disabled]="isSavingMembers">{{isSavingMembers ? 'Saving…' : 'Save team'}}</button></div>
+			@if (membersSuccessMessage) { <p class="team-success" role="status">{{membersSuccessMessage}}</p> }
+			<div class="member-options member-options-inline">
+				@for (user of assignableUsers(); track user._id) {
+					<label class="member-option"><input type="checkbox" [checked]="isMemberSelected(user._id)" [disabled]="isRequiredProjectMember(project, user._id)" (change)="toggleProjectMember(user._id, $any($event.target).checked)" /><span><strong>{{user.fullName}}</strong><small>{{user.email}} · {{user.role}}</small></span><span class="member-state">{{isMemberSelected(user._id) ? 'Member' : 'Not assigned'}}</span></label>
+				}
+			</div>
+		</section>
+		<div class="sprint-workspace">
+			<aside class="sprint-rail">
+				<div class="section-heading"><h2>Sprint plan</h2><button class="btn btn-quiet" type="button" (click)="showSprintForm = !showSprintForm">{{showSprintForm ? 'Cancel' : '+ Sprint'}}</button></div>
+				<nav class="sprint-list" aria-label="Project sprints">
+					@for (sprint of sprints(); track sprint._id) {
+						<button class="sprint-option" [class.is-selected]="selectedSprint()?._id === sprint._id" type="button" (click)="selectSprint(sprint)">
+							<span class="sprint-option-name">{{sprint.name}}</span>
+							<span class="status-tag" [class]="'status-tag status--' + sprint.status.toLowerCase()">{{sprint.status}}</span>
+							<span class="sprint-dates">{{sprint.startDate | date:'mediumDate'}} – {{sprint.endDate | date:'mediumDate'}}</span>
+						</button>
+					} @empty {
+						<p class="empty-copy">No sprints in this project.</p>
+					}
+				</nav>
+			</aside>
+
+			<section class="sprint-content">
+				@if (showSprintForm) {
+					<div class="form-panel">
+						<h2>Plan a sprint</h2>
+						<div class="form-grid">
+							<label>Sprint name<input class="field-input" [(ngModel)]="sprintName" maxlength="120" /></label>
+							<label>Goal<input class="field-input" [(ngModel)]="sprintGoal" maxlength="1000" /></label>
+							<label>Start date<input class="field-input" type="date" [(ngModel)]="sprintStart" /></label>
+							<label>End date<input class="field-input" type="date" [(ngModel)]="sprintEnd" [min]="sprintStart" /></label>
+						</div>
+						<button class="btn btn-primary" type="button" (click)="createSprint()">Save sprint</button>
+					</div>
+				}
+
+				@if (selectedSprint(); as sprint) {
+					<div class="sprint-heading">
+						<div>
+							<p class="eyebrow">{{sprint.status}} SPRINT</p>
+							<h2>{{sprint.name}}</h2>
+							<p class="sprint-goal">{{sprint.sprintGoal || 'No sprint goal set'}}</p>
+						</div>
+						<div class="sprint-actions">
+							@if (sprint.status === 'Planned') { <button class="btn btn-primary" type="button" (click)="startSprint(sprint)">Start sprint</button> }
+							@if (sprint.status === 'Active') {
+								<select class="field-input target-sprint" aria-label="Move unresolved stories to" [(ngModel)]="targetSprintId">
+									<option value="">Return unresolved to backlog</option>
+									@for (target of plannedSprints; track target._id) { @if (target._id !== sprint._id) { <option [value]="target._id">Move to {{target.name}}</option> } }
+								</select>
+								<button class="btn btn-danger" type="button" (click)="completeSprint(sprint)">Complete sprint</button>
+							}
 						</div>
 					</div>
-					<div style="margin-top:0.5rem; display:flex; gap:0.5rem;">
-						<button class="btn btn-primary" (click)="createSprint(newSprintName, newSprintStart, newSprintEnd, newSprintCapacities)">Create</button>
-						<button class="btn" (click)="toggleCreate()">Cancel</button>
-					</div>
-				</div>
-			</div>
-		</div>
 
-		<div style="display:grid; grid-template-columns: 2fr 1fr; gap:1rem; margin-top:1rem;">
-			<div>
-				<h3>Backlog</h3>
-				<div *ngFor="let b of backlogItems" style="display:flex; justify-content:space-between; align-items:center; padding:0.5rem; border-bottom:1px dashed #eef6ff;">
-					<div>
-						<div style="font-weight:600">{{b.title}}</div>
-												<div style="color:#64748b; font-size:0.9rem; display:flex; gap:0.6rem; align-items:center">SP: {{b.points}} •
-													<div class="avatar" [style.background]="getAssigneeColor(b.assignee)" style="width:22px;height:22px;border-radius:6px;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700">{{getInitials(b.assignee)}}</div>
-													<div>{{b.assignee}}</div>
-												</div>
-					</div>
-					<div style="display:flex; gap:0.4rem;">
-						<button class="btn" (click)="assignToSprint(b)" [disabled]="b.sprintId===selectedSprint?.id">Add to Sprint</button>
-						<button class="btn" *ngIf="b.sprintId" (click)="unassignFromSprint(b)">Remove</button>
-					</div>
-				</div>
-			</div>
+					<div class="planning-grid">
+						<section class="work-section">
+							<div class="section-heading"><h3>Backlog</h3><span class="item-count">{{backlogIssues.length}}</span></div>
+							<form class="quick-create" (ngSubmit)="createBacklogIssue()">
+								<input class="field-input" aria-label="Story title" placeholder="Add a story to the backlog" [(ngModel)]="issueTitle" name="issueTitle" maxlength="200" required />
+								<input class="field-input points-input" aria-label="Story points" type="number" min="0" max="100" [(ngModel)]="issuePoints" name="issuePoints" />
+								<select class="field-input priority-input" aria-label="Priority" [(ngModel)]="issuePriority" name="issuePriority">
+									@for (priority of priorities; track priority) { <option [value]="priority">{{priority}}</option> }
+								</select>
+								<select class="field-input assignee-input" aria-label="Assign story to a project member" [(ngModel)]="issueAssigneeId" name="issueAssigneeId">
+									<option value="">Unassigned</option>
+									@for (member of getProjectMembers(project); track member._id) { <option [value]="member._id">{{member.fullName}}</option> }
+								</select>
+								<button class="btn btn-primary" type="submit">Add</button>
+							</form>
+							<div class="issue-list">
+								@for (issue of backlogIssues; track issue._id) {
+									<article class="issue-row">
+										<div class="issue-main"><span class="issue-key">{{issue.issueKey}}</span><strong>{{issue.title}}</strong><span class="priority-pill" [class]="'priority-pill priority--' + issue.priority.toLowerCase()">{{issue.priority}}</span></div>
+										<div class="issue-meta"><span>{{issue.storyPoints}} pts</span><label class="issue-assignee-control">Owner<select class="field-input" aria-label="Change story owner" [ngModel]="getAssigneeId(issue)" (ngModelChange)="updateBacklogAssignee(issue, $event)" [disabled]="updatingAssigneeIds.has(issue._id)"><option value="">Unassigned</option>@for (member of getProjectMembers(project); track member._id) { <option [value]="member._id">{{member.fullName}}</option> }</select></label><button class="btn btn-quiet" type="button" [disabled]="sprint.status === 'Completed'" (click)="assignToSprint(issue)">Add to sprint</button></div>
+									</article>
+								} @empty { <p class="empty-copy">The backlog is clear.</p> }
+							</div>
+						</section>
 
-			<div>
-				<h3>Sprint Scope</h3>
-				<div *ngIf="selectedSprint">
-					<div style="margin-bottom:0.6rem;">
-						<div style="font-weight:700; margin-bottom:0.35rem;">Capacities</div>
-						<div *ngFor="let r of roles" style="display:flex; justify-content:space-between; padding:0.25rem 0; border-bottom:1px dashed #f4f7fb;">
-							<div>{{r}}</div>
-							<div>{{selectedSprint.capacities[r] || 0}}</div>
-						</div>
+						<section class="work-section sprint-scope">
+							<div class="section-heading"><h3>Sprint scope</h3><span class="item-count">{{selectedSprintIssues.length}}</span></div>
+							<div class="issue-list">
+								@for (issue of selectedSprintIssues; track issue._id) {
+									<article class="issue-row">
+										<div class="issue-main"><span class="issue-key">{{issue.issueKey}}</span><strong>{{issue.title}}</strong><span class="priority-pill" [class]="'priority-pill priority--' + issue.priority.toLowerCase()">{{issue.priority}}</span></div>
+										<div class="issue-meta"><span>{{issue.storyPoints}} pts</span><span>{{issue.status}}</span><button class="btn btn-quiet" type="button" [disabled]="sprint.status === 'Completed'" (click)="unassignFromSprint(issue)">Back to backlog</button></div>
+									</article>
+								} @empty { <p class="empty-copy">No stories are assigned to this sprint.</p> }
+							</div>
+						</section>
 					</div>
-					<div *ngFor="let b of backlogItems.filter(x=>x.sprintId===selectedSprint.id)" style="padding:0.5rem; border-bottom:1px dashed #eef6ff;">
-						<div style="font-weight:600">{{b.title}}</div>
-												<div style="color:#64748b; font-size:0.9rem; display:flex; gap:0.6rem; align-items:center">SP: {{b.points}} •
-													<div class="avatar" [style.background]="getAssigneeColor(b.assignee)" style="width:22px;height:22px;border-radius:6px;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700">{{getInitials(b.assignee)}}</div>
-													<div>{{b.assignee}}</div>
-												</div>
+				} @else {
+					<div class="empty-state"><h2>Plan your first sprint</h2><p>Create a sprint to add backlog items to its scope.</p></div>
+				}
+
+				<section class="analytics-section">
+					<div class="section-heading"><h2>Delivery metrics</h2><span>Last five completed sprints</span></div>
+					<div class="velocity-list">
+						@for (entry of analytics()?.velocity || []; track entry.sprintId) {
+							<div class="velocity-row"><span>{{entry.name}}</span><strong>{{entry.completedPoints}} pts</strong></div>
+						} @empty { <p class="empty-copy">Velocity appears after a sprint is completed.</p> }
 					</div>
-				</div>
-				<div *ngIf="!selectedSprint" class="panel-empty">Select a sprint to view scope.</div>
-			</div>
+					@if (analytics()?.burndown; as burndown) {
+						<div class="burndown-summary"><span>Active sprint remaining</span><strong>{{burndown.days[burndown.days.length - 1]?.remainingPoints || 0}} / {{burndown.totalPoints}} pts</strong></div>
+					}
+				</section>
+			</section>
 		</div>
-	</section>
-</div>
+	}
+</main>

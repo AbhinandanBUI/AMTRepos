@@ -94,6 +94,7 @@ import userRouter from "./routes/user.routes.js";
 import addTask from './routes/addTask.router.js'
 import assignProject from './routes/assignProject.router.js'
 import common from './routes/common.route.js'
+import agile from './routes/agile.router.js'
 
  
 
@@ -136,6 +137,7 @@ app.use("/api/users", userRouter);
 app.use("/api/addTask", addTask);
 app.use("/api/assignProject", assignProject);
 app.use("/api/common", common);
+app.use("/api/agile", agile);
 // common error handling middleware
 
 // ! 🚫 Danger Zone

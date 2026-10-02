@@ -7,6 +7,7 @@
   "scripts": {
     "start": "nodemon -r dotenv/config --experimental-json-modules src/index.js ",
     "runserver": "nodemon -r dotenv/config --experimental-json-modules src/index.js",
+    "seed:test-users": "node -r dotenv/config src/scripts/seed-test-users.js",
     "pre-commit": "lint-staged",
     "prepare": "npm run build",
     "build": "nodemon functions/api.js"

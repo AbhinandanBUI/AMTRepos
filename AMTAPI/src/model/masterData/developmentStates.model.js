@@ -10,12 +10,17 @@ const developmentStateSchema = new Schema(
         name: {
             type: String,
             required: true,
+            unique: true,
         },
 
         isActive: {
             type: Boolean,
             required: true,
             default: true,
+        },
+        colorCode: {
+            type: String,
+            default: "#56c8ed",
         },
         orderBy: {
             type: Number,

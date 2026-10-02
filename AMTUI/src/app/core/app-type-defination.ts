@@ -2,6 +2,13 @@ export interface Id_Name_Type {
   Id: number;
   Name: string;
 }
+export interface Work_Item_Type {
+  _id:string,
+  workItemId: number,
+  name: string,
+  colorCode: string,
+  isActive: boolean
+}
 
 export interface TimeTask {
   _id: string;

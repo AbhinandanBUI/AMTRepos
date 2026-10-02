@@ -18,7 +18,7 @@ const userSchema = new Schema(
         localPath: String,
       },
       default: {
-        url: `https://pixlok.com/wp-content/uploads/2021/03/Avtar-Icon-PNG-Image.jpg`,
+        url: `https://png.pngtree.com/png-clipart/20230927/original/pngtree-man-avatar-image-for-profile-png-image_13001877.png`,
         localPath: "",
       },
     },
@@ -81,6 +81,11 @@ const userSchema = new Schema(
     isActive: {
       type: Boolean,
       default: false,
+    },
+    isTestAccount: {
+      type: Boolean,
+      default: false,
+      select: false,
     },
     refreshToken: {
       type: String,

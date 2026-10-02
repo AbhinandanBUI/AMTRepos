@@ -18,12 +18,18 @@ import { VideosComponent } from './pages/ui-elements/videos/videos.component';
 import { SignInComponent } from './pages/auth-pages/sign-in/sign-in.component';
 import { SignUpComponent } from './pages/auth-pages/sign-up/sign-up.component';
 import { CalenderComponent } from './pages/calender/calender.component';
+import { UnauthorizedComponent } from './pages/other-page/unauthorized/unauthorized.component';
 
 export const routes: Routes = [
   {
     path: 'signin',
     component: SignInComponent,
     title: 'Sign In | Ajile Management Tool'
+  },
+  {
+    path: 'unauthorized',
+    component: UnauthorizedComponent,
+    title: 'Unauthorized | Ajile Management Tool'
   },
   {
     path: '',
@@ -50,6 +56,11 @@ export const routes: Routes = [
         path: 'settings',
         loadChildren: () => import('./feature/setting/setting.module').then((m) => m.SettingModule),
         title: 'Settings | Ajile Management Tool',
+      },
+      {
+        path: 'admin',
+        loadChildren: () => import('./feature/admin/admin.module').then((m) => m.AdminModule),
+        title: 'Admin | Ajile Management Tool',
       },
       {
         path: '**',

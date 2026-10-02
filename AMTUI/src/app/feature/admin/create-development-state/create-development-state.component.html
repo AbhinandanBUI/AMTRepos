@@ -1,0 +1,39 @@
+<main class="master-data-page">
+	<header class="page-heading">
+		<div><p class="eyebrow">AGILE CONFIGURATION</p><h1>Development states</h1><p class="page-description">Define the ordered states used to move work through delivery.</p></div>
+		<span class="record-count">{{states.length}} states</span>
+	</header>
+
+	@if (errorMessage) { <p class="feedback feedback-error" role="alert">{{errorMessage}}</p> }
+	@if (successMessage) { <p class="feedback feedback-success" role="status">{{successMessage}}</p> }
+
+	<section class="form-panel" aria-labelledby="create-state-title">
+		<h2 id="create-state-title">Add a state</h2>
+		<form class="create-form" (ngSubmit)="createState()">
+			<label>State name
+				<input class="field-input" name="name" [(ngModel)]="name" maxlength="60" autocomplete="off" required />
+			</label>
+			<label class="color-field">Color
+				<input type="color" name="colorCode" [(ngModel)]="colorCode" aria-label="Development state color" />
+				<span>{{colorCode}}</span>
+			</label>
+			<button class="primary-button" type="submit" [disabled]="!name.trim() || isSaving">{{isSaving ? 'Adding…' : 'Add state'}}</button>
+		</form>
+		<p class="form-hint">New states are appended after the current final state.</p>
+	</section>
+
+	<section class="records-section" aria-labelledby="state-list-title">
+		<div class="section-heading"><h2 id="state-list-title">Workflow order</h2><button class="text-button" type="button" (click)="loadStates()" [disabled]="isLoading">Refresh</button></div>
+		@if (isLoading) {
+			<p class="empty-state">Loading development states…</p>
+		} @else if (states.length) {
+			<ol class="state-list">
+				@for (state of states; track state._id) {
+					<li class="state-row"><span class="order-index">{{state.orderBy}}</span><span class="color-swatch" [style.backgroundColor]="state.colorCode"></span><strong>{{state.name}}</strong><span class="record-id">State {{state.developmentStateId}}</span></li>
+				}
+			</ol>
+		} @else {
+			<p class="empty-state">No development states are configured yet.</p>
+		}
+	</section>
+</main>

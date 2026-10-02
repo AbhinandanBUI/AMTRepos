@@ -1,0 +1,18 @@
+<article class="story-card">
+	<div class="story-card-topline">
+		<span class="issue-key">{{issue.issueKey}}</span>
+		<span class="priority-pill" [class]="'priority-pill priority--' + issue.priority.toLowerCase()">{{issue.priority}}</span>
+	</div>
+	<h3>{{issue.title}}</h3>
+	<div class="story-card-footer">
+		<div class="assignee" [attr.aria-label]="'Assignee: ' + assigneeName">
+			@if (avatarUrl; as url) {
+				<img [src]="url" [alt]="assigneeName" />
+			} @else {
+				<span class="assignee-initials">{{assigneeInitials}}</span>
+			}
+			<span>{{assigneeName}}</span>
+		</div>
+		<span class="story-points">{{issue.storyPoints}} pts</span>
+	</div>
+</article>
