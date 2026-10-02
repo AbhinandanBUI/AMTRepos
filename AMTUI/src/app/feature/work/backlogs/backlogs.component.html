@@ -10,8 +10,6 @@
 		}
 	</header>
 
-	@if (error()) { <p class="notice notice-error" role="alert">{{error()}}</p> }
-
 	@if (!projects().length && !isLoading()) {
 		<section class="empty-state"><h2>No accessible projects</h2><p>Ask a project lead to add you to a project before viewing its backlog.</p></section>
 	} @else {

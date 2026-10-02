@@ -11,6 +11,7 @@ import { MasterAPIService } from '../../../../services/master-api.service';
 import { App_API_Endpoints } from '../../../../core/app-api-endpoints';
 import { LocalStorageService } from '../../../../services/StorageServices/local-storage.service';
 import { AuthService, AuthenticatedProfile } from '../../../../services/StorageServices/auth-service.service';
+import { ToastService } from '../../../../services/toast.service';
 declare const google: any;
 
 @Component({
@@ -34,12 +35,12 @@ export class SigninFormComponent implements OnInit {
   showPassword = false;
   loginForm: FormGroup = [] as unknown as FormGroup;
   clientId: string = '';
-  loginError = '';
   isSubmitting = false;
 
   constructor(private fb: FormBuilder, private _router: Router, private _api: MasterAPIService,
     private _localStorage: LocalStorageService,
     private _auth: AuthService,
+    private readonly toast: ToastService,
     private ngZone: NgZone
   ) { }
 
@@ -60,8 +61,8 @@ export class SigninFormComponent implements OnInit {
     this.showPassword = !this.showPassword;
   }
   onSignIn() {
-    this.loginError = '';
     if (this.loginForm.invalid) {
+      this.toast.warning('Enter your email and password to sign in.');
       this.loginForm.markAllAsTouched();
       return;
     }
@@ -80,12 +81,10 @@ export class SigninFormComponent implements OnInit {
           role: user.role,
         });
         this._router.navigateByUrl('/timesheet/overview');
+        this.toast.success(`Welcome, ${user.fullName}.`, 'Signed in');
         this.isSubmitting = false;
       },
-      error: (error: { error?: { message?: string } }) => {
-        this.loginError = error.error?.message || 'Sign-in failed. Check your email and password.';
-        this.isSubmitting = false;
-      },
+      error: () => this.isSubmitting = false,
     });
   }
   ngAfterViewInit(): void {
@@ -125,6 +124,7 @@ export class SigninFormComponent implements OnInit {
                         } as AuthenticatedProfile;
                         this._auth.setUser(user);
                         this._router.navigateByUrl('/timesheet/overview');
+                        this.toast.success(`Welcome, ${user.name}.`, 'Signed in');
 
                       }
 

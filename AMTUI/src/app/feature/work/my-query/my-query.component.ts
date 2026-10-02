@@ -21,7 +21,6 @@ type QueryTokens = Partial<Record<'key' | 'project' | 'assignee' | 'status' | 'p
 export class MyQueryComponent implements OnInit {
   private readonly agile = inject(AgileService);
   private readonly auth = inject(AuthService);
-  readonly error = this.agile.error;
   queryText = '';
   titleQ = '';
   projectQ = '';
@@ -34,7 +33,6 @@ export class MyQueryComponent implements OnInit {
   readonly statuses = ISSUE_STATUSES;
   readonly priorities = ISSUE_PRIORITIES;
   isLoading = false;
-  loadError = '';
   pageSize = 8;
   currentPage = 1;
 
@@ -131,7 +129,6 @@ export class MyQueryComponent implements OnInit {
 
   private loadIssues(): void {
     this.isLoading = true;
-    this.loadError = '';
     this.agile.loadProjects().pipe(
       switchMap((projects) => {
         this.projects = projects;
@@ -144,8 +141,7 @@ export class MyQueryComponent implements OnInit {
           })))
         ))).pipe(map((issueGroups) => issueGroups.flat()));
       }),
-      catchError((error: { error?: { message?: string } }) => {
-        this.loadError = error.error?.message || 'Could not load work items.';
+      catchError(() => {
         return of([] as QueryIssue[]);
       })
     ).subscribe((issues) => {

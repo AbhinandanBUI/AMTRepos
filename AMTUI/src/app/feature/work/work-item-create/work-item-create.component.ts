@@ -1,7 +1,8 @@
-import { Component, ElementRef, HostListener, ViewChild, OnDestroy } from '@angular/core';
+import { Component, ElementRef, HostListener, ViewChild, OnDestroy, inject } from '@angular/core';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 import { APP_User_Data, New_Work_Items } from '../../../core/app-constant-data';
+import { ToastService } from '../../../services/toast.service';
 
 @Component({
     standalone: false,
@@ -10,6 +11,7 @@ import { APP_User_Data, New_Work_Items } from '../../../core/app-constant-data';
     styleUrls: ['./work-item-create.component.css']
 })
 export class WorkItemCreateComponent {
+    private readonly toast = inject(ToastService);
     model: any = {
         title: '',
         assignedTo: '',
@@ -534,7 +536,7 @@ export class WorkItemCreateComponent {
     // --- Git/PR helpers (demo-only, in-memory) ---
     createPR() {
         const git = this.model.git || {};
-        if (!git.sourceBranch) { alert('Please enter source branch'); return; }
+        if (!git.sourceBranch) { this.toast.warning('Enter a source branch before creating a pull request.'); return; }
         const prId = Date.now() % 100000;
         const pr = {
             id: prId,
@@ -638,12 +640,10 @@ export class WorkItemCreateComponent {
         this.validatePlanDates();
         this.validateActualDates();
         if (this.hasErrors()) {
-            alert('Please fix validation errors before saving.');
+            this.toast.warning('Fix the date validation errors before continuing.');
             return;
         }
-        // TODO: hook up to backend or service
-        console.log('Create work item', this.model);
-        alert('Work item created (demo): ' + this.model.title);
+        this.toast.info('This editor is still a demo; the work item has not been saved.', 'Not saved');
         this.reset();
     }
 

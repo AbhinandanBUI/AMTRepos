@@ -7,9 +7,6 @@
 		</div>
 	</header>
 
-	@if (errorMessage) { <p class="feedback feedback-error" role="alert">{{errorMessage}}</p> }
-	@if (successMessage) { <p class="feedback feedback-success" role="status">{{successMessage}}</p> }
-
 	<section class="form-panel" aria-labelledby="create-user-heading">
 		<h2 id="create-user-heading">Account details</h2>
 		<form class="user-form" #testUserForm="ngForm" (ngSubmit)="createTestUser()">

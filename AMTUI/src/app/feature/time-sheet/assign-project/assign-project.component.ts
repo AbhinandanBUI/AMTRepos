@@ -5,6 +5,7 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 import { MasterAPIService } from '../../../services/master-api.service';
 import { App_API_Endpoints } from '../../../core/app-api-endpoints';
 import { AssignProjectList, saveAssignProject } from '../time-sheet-model';
+import { ToastService } from '../../../services/toast.service';
 
 
 @Component({
@@ -17,11 +18,10 @@ export class AssignProjectComponent implements OnInit {
 
   projects: ProjectAssignment[] = app_projects_data;
    assignments = signal<ProjectAssignment[]>([]);
-  saved = false;
   assignProjectForm: FormGroup = [] as unknown as FormGroup;
 
 
-  constructor(private _fb: FormBuilder, private _api: MasterAPIService) { }
+  constructor(private _fb: FormBuilder, private _api: MasterAPIService, private readonly toast: ToastService) { }
 
   ngOnInit(): void {
     this.initAssignProject();
@@ -76,6 +76,7 @@ export class AssignProjectComponent implements OnInit {
           this.getProjectList()
           this.assignProjectForm.reset();
           this.createAssignment()
+          this.toast.success('Project assignment saved.', 'Assignment created');
         }
       },
       error: (err) => {
@@ -83,8 +84,6 @@ export class AssignProjectComponent implements OnInit {
 
       }
     })
-    this.saved = true;
-    window.setTimeout(() => this.saved = false, 2500);
   }
 
   getProjectList() {
@@ -120,6 +119,7 @@ export class AssignProjectComponent implements OnInit {
         if (res.statusCode === 200 && res.success) {
           console.log('d', res);
           this.getProjectList()
+          this.toast.success('Project assignment removed.', 'Assignment deleted');
         }
       },
       error: (err: any) => {

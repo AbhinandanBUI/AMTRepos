@@ -2,6 +2,7 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { forkJoin } from 'rxjs';
 import { AgileService } from '../agile.service';
 import { AgileIssue, AgileProject, AgileSprint, AgileUser, ISSUE_PRIORITIES, IssuePriority } from '../agile.models';
+import { ToastService } from '../../../services/toast.service';
 
 @Component({
   standalone: false,
@@ -11,6 +12,7 @@ import { AgileIssue, AgileProject, AgileSprint, AgileUser, ISSUE_PRIORITIES, Iss
 })
 export class SprintsComponent implements OnInit {
   private readonly agile = inject(AgileService);
+  private readonly toast = inject(ToastService);
   readonly projects = this.agile.projects;
   readonly assignableUsers = this.agile.assignableUsers;
   readonly selectedProject = this.agile.selectedProject;
@@ -28,7 +30,6 @@ export class SprintsComponent implements OnInit {
   projectDescription = '';
   projectMemberIds: string[] = [];
   isSavingMembers = false;
-  membersSuccessMessage = '';
   sprintName = '';
   sprintGoal = '';
   sprintStart = '';
@@ -67,7 +68,6 @@ export class SprintsComponent implements OnInit {
     this.agile.selectedProject.set(project);
     this.selectedSprint.set(null);
     this.projectMemberIds = project?.members.map((member) => this.getUserId(member)) || [];
-    this.membersSuccessMessage = '';
     if (!project) {
       this.agile.clearProjectState();
       return;
@@ -109,6 +109,7 @@ export class SprintsComponent implements OnInit {
         this.projectMemberIds = created.members.map((member) => this.getUserId(member));
         this.showProjectForm = false;
         this.selectProject(created._id);
+        this.toast.success(`${created.key} is ready.`, 'Project created');
       },
     });
   }
@@ -130,6 +131,7 @@ export class SprintsComponent implements OnInit {
         this.sprintStart = '';
         this.sprintEnd = '';
         this.showSprintForm = false;
+        this.toast.success(`${created.name} is ready for planning.`, 'Sprint created');
       },
     });
   }
@@ -151,6 +153,7 @@ export class SprintsComponent implements OnInit {
         this.issuePoints = 0;
         this.issuePriority = 'Medium';
         this.issueAssigneeId = '';
+        this.toast.success('Story added to the backlog.', 'Work item created');
       },
     });
   }
@@ -158,7 +161,10 @@ export class SprintsComponent implements OnInit {
   updateBacklogAssignee(issue: AgileIssue, assigneeId: string): void {
     this.updatingAssigneeIds.add(issue._id);
     this.agile.updateIssueAssignee(issue._id, assigneeId || null).subscribe({
-      next: () => this.updatingAssigneeIds.delete(issue._id),
+      next: () => {
+        this.updatingAssigneeIds.delete(issue._id);
+        this.toast.success('Story owner updated.', 'Assignment saved');
+      },
       error: () => this.updatingAssigneeIds.delete(issue._id),
     });
   }
@@ -170,16 +176,23 @@ export class SprintsComponent implements OnInit {
   assignToSprint(issue: AgileIssue): void {
     const sprint = this.selectedSprint();
     if (!sprint) return;
-    this.agile.updateIssueSprint(issue._id, sprint._id).subscribe();
+    this.agile.updateIssueSprint(issue._id, sprint._id).subscribe({
+      next: () => this.toast.success(`${issue.issueKey} added to ${sprint.name}.`, 'Sprint scope updated'),
+    });
   }
 
   unassignFromSprint(issue: AgileIssue): void {
-    this.agile.updateIssueSprint(issue._id, null).subscribe();
+    this.agile.updateIssueSprint(issue._id, null).subscribe({
+      next: () => this.toast.info(`${issue.issueKey} returned to the backlog.`, 'Sprint scope updated'),
+    });
   }
 
   startSprint(sprint: AgileSprint): void {
     this.agile.startSprint(sprint._id).subscribe({
-      next: () => this.refreshProject(),
+      next: () => {
+        this.toast.success(`${sprint.name} is now active.`, 'Sprint started');
+        this.refreshProject();
+      },
     });
   }
 
@@ -187,6 +200,7 @@ export class SprintsComponent implements OnInit {
     this.agile.completeSprint(sprint._id, this.targetSprintId || undefined).subscribe({
       next: () => {
         this.targetSprintId = '';
+        this.toast.success(`${sprint.name} was completed.`, 'Sprint completed');
         this.refreshProject();
       },
     });
@@ -214,12 +228,11 @@ export class SprintsComponent implements OnInit {
     const project = this.selectedProject();
     if (!project) return;
     this.isSavingMembers = true;
-    this.membersSuccessMessage = '';
     this.agile.updateProjectMembers(project._id, this.projectMemberIds).subscribe({
       next: (updated) => {
         this.projectMemberIds = updated.members.map((member) => this.getUserId(member));
-        this.membersSuccessMessage = 'Project membership saved.';
         this.isSavingMembers = false;
+        this.toast.success('Project membership saved.', 'Team updated');
       },
       error: () => this.isSavingMembers = false,
     });

@@ -17,10 +17,6 @@
 		</div>
 	</header>
 
-	@if (error()) {
-		<p class="notice notice-error" role="alert">{{error()}}</p>
-	}
-
 	@if (showProjectForm) {
 		<section class="form-panel">
 			<h2>Create project</h2>
@@ -50,7 +46,6 @@
 		<div class="project-summary"><span class="project-key">{{project.key}}</span><span>{{project.name}}</span><span class="summary-description">{{project.description || 'No project description'}}</span></div>
 		<section class="team-section">
 			<div class="section-heading"><div><h2>Project team</h2><p class="field-help">{{getProjectMembers(project).length}} assigned member{{getProjectMembers(project).length === 1 ? '' : 's'}}</p></div><button class="btn btn-quiet" type="button" (click)="saveProjectMembers()" [disabled]="isSavingMembers">{{isSavingMembers ? 'Saving…' : 'Save team'}}</button></div>
-			@if (membersSuccessMessage) { <p class="team-success" role="status">{{membersSuccessMessage}}</p> }
 			<div class="member-options member-options-inline">
 				@for (user of assignableUsers(); track user._id) {
 					<label class="member-option"><input type="checkbox" [checked]="isMemberSelected(user._id)" [disabled]="isRequiredProjectMember(project, user._id)" (change)="toggleProjectMember(user._id, $any($event.target).checked)" /><span><strong>{{user.fullName}}</strong><small>{{user.email}} · {{user.role}}</small></span><span class="member-state">{{isMemberSelected(user._id) ? 'Member' : 'Not assigned'}}</span></label>

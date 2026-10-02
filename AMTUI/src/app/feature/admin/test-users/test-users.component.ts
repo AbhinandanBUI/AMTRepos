@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { MasterAPIService } from '../../../services/master-api.service';
 import { APIResponse } from '../../../core/app-type-defination';
 import { App_API_Endpoints } from '../../../core/app-api-endpoints';
+import { ToastService } from '../../../services/toast.service';
 
 interface TestUserForm {
   firstName: string;
@@ -42,22 +43,18 @@ export class TestUsersComponent {
     password: '',
     role: 'Developer',
   };
-  errorMessage = '';
-  successMessage = '';
   isSaving = false;
 
-  constructor(private readonly api: MasterAPIService) {}
+  constructor(private readonly api: MasterAPIService, private readonly toast: ToastService) {}
 
   createTestUser(): void {
-    this.errorMessage = '';
-    this.successMessage = '';
     this.isSaving = true;
 
     this.api.post(App_API_Endpoints.users.createTestUser, this.form).subscribe({
       next: (response: APIResponse) => {
         const user = response.data.user as CreatedTestUser;
         this.users.unshift(user);
-        this.successMessage = `${user.fullName} was created.`;
+        this.toast.success(`${user.fullName} was created.`, 'Test user created');
         this.form.firstName = '';
         this.form.lastName = '';
         this.form.email = '';
@@ -65,8 +62,7 @@ export class TestUsersComponent {
         this.form.role = 'Developer';
         this.isSaving = false;
       },
-      error: (error: { error?: { message?: string } }) => {
-        this.errorMessage = error.error?.message || 'The test user could not be created.';
+      error: () => {
         this.isSaving = false;
       },
     });
