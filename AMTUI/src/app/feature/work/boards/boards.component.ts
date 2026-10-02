@@ -3,6 +3,7 @@ import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { forkJoin } from 'rxjs';
 import { AgileService } from '../agile.service';
 import { AgileIssue, AgileProject, AgileSprint, AgileUser, ISSUE_PRIORITIES, ISSUE_STATUSES, IssueStatus } from '../agile.models';
+import { ToastService } from '../../../services/toast.service';
 
 @Component({
   standalone: false,
@@ -12,6 +13,7 @@ import { AgileIssue, AgileProject, AgileSprint, AgileUser, ISSUE_PRIORITIES, ISS
 })
 export class BoardsComponent implements OnInit {
   private readonly agile = inject(AgileService);
+  private readonly toast = inject(ToastService);
   readonly projects = this.agile.projects;
   readonly selectedProject = this.agile.selectedProject;
   readonly sprints = this.agile.sprints;
@@ -89,6 +91,7 @@ export class BoardsComponent implements OnInit {
     if (event.previousContainer === event.container) return;
     const issue = event.item.data as AgileIssue;
     this.agile.updateIssueStatus(issue._id, status).subscribe({
+      next: () => this.toast.success(`${issue.issueKey} moved to ${status}.`, 'Status updated'),
       error: () => this.reloadIssues(),
     });
   }

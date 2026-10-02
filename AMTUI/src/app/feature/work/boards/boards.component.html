@@ -13,8 +13,6 @@
 		</div>
 	</header>
 
-	@if (error()) { <p class="notice notice-error" role="alert">{{error()}}</p> }
-
 	@if (!projects().length) {
 		<section class="empty-state"><h2>No projects available</h2><p>Create a project from the Sprints page before planning work.</p></section>
 	} @else if (!selectedSprint) {

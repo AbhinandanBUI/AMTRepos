@@ -2,6 +2,7 @@ import { Component, OnInit,signal } from '@angular/core';
 import { MasterAPIService } from '../../../services/master-api.service';
 import { APIResponse, Work_Item_Type } from '../../../core/app-type-defination';
 import { App_API_Endpoints } from '../../../core/app-api-endpoints';
+import { ToastService } from '../../../services/toast.service';
 
 @Component({
   selector: 'app-create-work-item',
@@ -15,10 +16,8 @@ export class CreateWorkItemComponent implements OnInit {
   colorCode = '#087e78';
   isLoading = false;
   isSaving = false;
-  errorMessage = '';
-  successMessage = '';
 
-  constructor(private readonly api: MasterAPIService) {}
+  constructor(private readonly api: MasterAPIService, private readonly toast: ToastService) {}
 
   ngOnInit(): void {
     this.loadWorkItems();
@@ -26,14 +25,12 @@ export class CreateWorkItemComponent implements OnInit {
 
   loadWorkItems(): void {
     this.isLoading = true;
-    this.errorMessage = '';
     this.api.get(App_API_Endpoints.common.getWorkItems).subscribe({
       next: (response: APIResponse) => {
         this.workItemLists.set(response.data as Work_Item_Type[]);
         this.isLoading = false;
       },
-      error: (error: { error?: { message?: string } }) => {
-        this.errorMessage = error.error?.message || 'Could not load work item types.';
+      error: () => {
         this.isLoading = false;
       },
     });
@@ -44,8 +41,6 @@ export class CreateWorkItemComponent implements OnInit {
     if (!name || !/^#[\da-f]{6}$/i.test(this.colorCode)) return;
 
     this.isSaving = true;
-    this.errorMessage = '';
-    this.successMessage = '';
     this.api.post(App_API_Endpoints.common.createWorkItem, { name, colorCode: this.colorCode }).subscribe({
       next: (response: APIResponse) => {
         this.workItemLists.update((workItems: Work_Item_Type[]) => {
@@ -53,11 +48,10 @@ export class CreateWorkItemComponent implements OnInit {
           return updatedWorkItems.sort((left, right) => left.name.localeCompare(right.name));
         });
         this.name = '';
-        this.successMessage = `${name} was added.`;
+        this.toast.success(`${name} was added.`, 'Work item type created');
         this.isSaving = false;
       },
-      error: (error: { error?: { message?: string } }) => {
-        this.errorMessage = error.error?.message || 'Could not create the work item type.';
+      error: () => {
         this.isSaving = false;
       },
     });

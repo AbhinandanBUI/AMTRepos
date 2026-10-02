@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { ToastService } from '../../../services/toast.service';
 
 interface DailyEntry {
   date: Date;
@@ -27,9 +28,8 @@ export class FillTimeSheetComponent {
   entries: DailyEntry[] = [];
   projects = ['Ajile Management Tool', 'Customer Portal', 'Internal Tools', 'Mobile Application'];
   tasks = ['Improve work item filters', 'Review dashboard copy', 'Build timesheet summary', 'Team planning'];
-  saved = false;
 
-  constructor() {
+  constructor(private readonly toast: ToastService) {
     this.buildWeek(this.selectedDate);
   }
 
@@ -61,8 +61,7 @@ export class FillTimeSheetComponent {
       return;
     }
 
-    this.saved = true;
-    window.setTimeout(() => this.saved = false, 2500);
+    this.toast.info('Timesheet entries are not connected to storage yet.', 'Demo action');
   }
 
   addTask(entry: DailyEntry): void {

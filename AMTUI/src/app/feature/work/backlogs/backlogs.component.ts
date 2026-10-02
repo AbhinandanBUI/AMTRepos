@@ -3,6 +3,7 @@ import { forkJoin } from 'rxjs';
 import { AuthService } from '../../../services/StorageServices/auth-service.service';
 import { AgileService } from '../agile.service';
 import { AgileIssue, AgileProject, AgileSprint } from '../agile.models';
+import { ToastService } from '../../../services/toast.service';
 
 @Component({
   standalone: false,
@@ -13,6 +14,7 @@ import { AgileIssue, AgileProject, AgileSprint } from '../agile.models';
 export class BacklogsComponent implements OnInit {
   private readonly agile = inject(AgileService);
   private readonly auth = inject(AuthService);
+  private readonly toast = inject(ToastService);
   readonly projects = this.agile.projects;
   readonly issues = this.agile.issues;
   readonly sprints = this.agile.sprints;
@@ -90,7 +92,10 @@ export class BacklogsComponent implements OnInit {
     if (!sprintId) return;
     this.isAssigningIssueId.set(issue._id);
     this.agile.updateIssueSprint(issue._id, sprintId).subscribe({
-      next: () => this.isAssigningIssueId.set(null),
+      next: () => {
+        this.isAssigningIssueId.set(null);
+        this.toast.success(`${issue.issueKey} added to the selected sprint.`, 'Backlog updated');
+      },
       error: () => this.isAssigningIssueId.set(null),
     });
   }

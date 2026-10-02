@@ -4,8 +4,6 @@
 		<label class="mine-toggle"><input type="checkbox" [(ngModel)]="assignedToMeOnly" (ngModelChange)="setPage(1)" /><span>Assigned to me</span></label>
 	</header>
 
-	@if (loadError || error()) { <p class="notice" role="alert">{{loadError || error()}}</p> }
-
 	<section class="query-panel" aria-label="Issue filters">
 		<label class="query-label" for="query-language">Query</label>
 		<textarea id="query-language" class="query-input" [(ngModel)]="queryText" (ngModelChange)="setPage(1)" placeholder='key:PRJ-12 project:PRJ assignee:me status:"In Progress" priority:High title:login' rows="2"></textarea>

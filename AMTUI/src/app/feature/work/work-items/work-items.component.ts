@@ -2,6 +2,7 @@ import { Component, inject, OnInit } from '@angular/core';
 import { forkJoin, Observable } from 'rxjs';
 import { AgileService } from '../agile.service';
 import { AgileIssue, AgileSprint, AgileUser, ISSUE_PRIORITIES, ISSUE_STATUSES, IssuePriority, IssueStatus } from '../agile.models';
+import { ToastService } from '../../../services/toast.service';
 
 
 
@@ -13,6 +14,7 @@ import { AgileIssue, AgileSprint, AgileUser, ISSUE_PRIORITIES, ISSUE_STATUSES, I
 })
 export class WorkItemsComponent implements OnInit {
   private readonly agile = inject(AgileService);
+  private readonly toast = inject(ToastService);
   readonly projects = this.agile.projects;
   readonly selectedProject = this.agile.selectedProject;
   readonly issues = this.agile.issues;
@@ -26,7 +28,6 @@ export class WorkItemsComponent implements OnInit {
   priorityFilter = '';
   isLoading = false;
   isCreating = false;
-  creationError = '';
   formOpen = false;
   readonly busyIssueIds = new Set<string>();
   newTitle = '';
@@ -94,7 +95,6 @@ export class WorkItemsComponent implements OnInit {
     if (!project || !title || this.newStoryPoints < 0 || this.newStoryPoints > 100) return;
 
     this.isCreating = true;
-    this.creationError = '';
     this.agile.createIssue(project._id, {
       title,
       description: this.newDescription.trim(),
@@ -113,11 +113,9 @@ export class WorkItemsComponent implements OnInit {
         this.newSprintId = '';
         this.formOpen = false;
         this.isCreating = false;
+        this.toast.success('Work item added to the project.', 'Work item created');
       },
-      error: () => {
-        this.creationError = this.error();
-        this.isCreating = false;
-      },
+      error: () => this.isCreating = false,
     });
   }
 
@@ -152,7 +150,10 @@ export class WorkItemsComponent implements OnInit {
   private runIssueUpdate(issue: AgileIssue, update: () => Observable<AgileIssue>): void {
     this.busyIssueIds.add(issue._id);
     update().subscribe({
-      next: () => this.busyIssueIds.delete(issue._id),
+      next: () => {
+        this.busyIssueIds.delete(issue._id);
+        this.toast.success(`${issue.issueKey} updated.`, 'Work item saved');
+      },
       error: () => this.busyIssueIds.delete(issue._id),
     });
   }

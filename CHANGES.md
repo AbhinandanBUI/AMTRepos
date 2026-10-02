@@ -23,6 +23,7 @@
 - Replaced the sample-only Backlogs page with persisted Agile backlog issues. It defaults to the signed-in user's assigned items, supports an all-project-backlog view, and can move a story into a selected sprint; the API transitions sprinted Backlog stories to `To Do` so they appear on the board.
 - Replaced My Query's generated demo records with persisted issues across all accessible projects. Query tokens and quick filters now match real issue keys, projects, assignees, status, priority, and title; supports `assignee:me`, assigned-to-me scope, pagination, and API loading/error states.
 - Replaced the Work Items sample list and local-only edits with project-scoped persisted Agile issues. The page supports creating stories, search/status/priority filters, and API-backed assignee, status, and sprint changes; sprinted new stories start in `To Do` and the page is protected by the Agile role guard.
+- Added a shared app-level toast service and viewport. HTTP errors now generate consistent toasts, while successful Admin, Agile, sign-in, and Timesheet actions report through the same UI; blocking browser alerts and duplicate inline notification banners were removed.
 - Fixed Tailwind v4 component stylesheet referencing so the Angular production build can resolve `@apply` utilities.
 
 ## API Routes

@@ -9,9 +9,6 @@
 		</div>
 	</header>
 
-	@if (error()) { <p class="notice" role="alert">{{error()}}</p> }
-	@if (creationError) { <p class="notice" role="alert">{{creationError}}</p> }
-
 	@if (formOpen) {
 		<section class="create-panel" aria-labelledby="create-work-item-title">
 			<h2 id="create-work-item-title">Create work item</h2>

@@ -4,9 +4,6 @@
 		<span class="record-count">{{workItemLists().length}} types</span>
 	</header>
 
-	@if (errorMessage) { <p class="feedback feedback-error" role="alert">{{errorMessage}}</p> }
-	@if (successMessage) { <p class="feedback feedback-success" role="status">{{successMessage}}</p> }
-
 	<section class="form-panel" aria-labelledby="create-type-title">
 		<h2 id="create-type-title">Add a type</h2>
 		<form class="create-form" (ngSubmit)="createWorkItem()">

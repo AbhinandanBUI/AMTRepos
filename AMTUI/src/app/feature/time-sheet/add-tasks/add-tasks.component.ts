@@ -4,6 +4,7 @@ import { Work_Item_Priority, Work_Item_Status } from '../../../core/app-constant
 import { MasterAPIService } from '../../../services/master-api.service';
 import { App_API_Endpoints } from '../../../core/app-api-endpoints';
 import { app_projects_data } from '../../../core/app-dummy-data';
+import { ToastService } from '../../../services/toast.service';
 
 @Component({
   standalone: false,
@@ -17,9 +18,7 @@ export class AddTasksComponent implements OnInit {
   statuses: Id_Name_Type[] = Work_Item_Status;
   task: TimeTask = this.createTask();
   tasks = signal<TimeTask[]>([]);
-  saved = false;
-
-  constructor(private _api: MasterAPIService) {
+  constructor(private _api: MasterAPIService, private readonly toast: ToastService) {
 
 
   }
@@ -47,15 +46,13 @@ export class AddTasksComponent implements OnInit {
     };
     this._api.post(App_API_Endpoints.taskAPI.saveTask, requestBody).subscribe({
       next: (response) => {
-        console.log('Task saved successfully', response);
+        this.toast.success('Task added to the project.', 'Task saved');
         this.getTasks();
       },
       error: (error) => {
         console.error('Error saving task', error);
       }
     });
-    this.saved = true;
-    window.setTimeout(() => this.saved = false, 2500);
   }
 
   removeTask(index: number): void {
@@ -90,7 +87,7 @@ export class AddTasksComponent implements OnInit {
     let param = { id: taskId };
     this._api.delete(`${App_API_Endpoints.taskAPI.deleteTask}`, { params: param }).subscribe({
       next: (response) => {
-        console.log('Task deleted successfully', response);
+        this.toast.success('Task removed.', 'Task deleted');
         this.getTasks();
       },
       error: (err) => {
