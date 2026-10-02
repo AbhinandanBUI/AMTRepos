@@ -1,0 +1,18 @@
+:host { display: block; }
+.story-card { background: #fff; border: 1px solid #dce6e4; border-radius: 5px; cursor: grab; padding: 0.65rem; }
+.story-card:active { cursor: grabbing; }
+.story-card-topline, .story-card-footer, .assignee { align-items: center; display: flex; }
+.story-card-topline, .story-card-footer { justify-content: space-between; }
+.issue-key { color: #087e78; font-size: 0.72rem; font-weight: 800; }
+.priority-pill { border-radius: 4px; font-size: 0.65rem; font-weight: 750; padding: 0.17rem 0.35rem; }
+.priority--low { background: #e8efed; color: #536864; }
+.priority--medium { background: #e2eef0; color: #2d6570; }
+.priority--high { background: #fff0d6; color: #8e5c13; }
+.priority--blocker { background: #fde4df; color: #9b3925; }
+h3 { color: #1f3438; font-size: 0.86rem; font-weight: 650; line-height: 1.35; margin: 0.55rem 0 0.7rem; overflow-wrap: anywhere; }
+.story-card-footer { border-top: 1px solid #e9efed; color: #63777a; font-size: 0.72rem; gap: 0.5rem; padding-top: 0.55rem; }
+.assignee { gap: 0.35rem; min-width: 0; }
+.assignee img, .assignee-initials { align-items: center; background: #dcebe6; border-radius: 50%; color: #285b50; display: inline-flex; flex: 0 0 1.5rem; height: 1.5rem; justify-content: center; object-fit: cover; width: 1.5rem; }
+.assignee span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.assignee-initials { font-size: 0.65rem; font-weight: 750; }
+.story-points { background: #f4f7f5; border-radius: 4px; color: #435b59; flex: 0 0 auto; font-weight: 700; padding: 0.2rem 0.35rem; }

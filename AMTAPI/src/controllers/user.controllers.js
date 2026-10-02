@@ -6,6 +6,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import mongoose from "mongoose";
+import { AgileTestUserRoles } from "../constants/agile-workflow.js";
 import { OAuth2Client } from "google-auth-library";
 const googleClient = new OAuth2Client(
   process.env.GOOGLE_CLIENT_ID
@@ -106,6 +107,51 @@ const registerUser = asyncHandler(async (req, res) => {
         "Users registered successfully and verification email has been sent on your email."
       )
     );
+});
+
+const createTestUser = asyncHandler(async (req, res) => {
+  const { firstName, lastName, email, password, role } = req.body;
+  const normalizedEmail = String(email || "").trim().toLowerCase();
+  const normalizedFirstName = String(firstName || "").trim();
+  const normalizedLastName = String(lastName || "").trim();
+
+  if (!normalizedFirstName || !normalizedLastName) {
+    throw new ApiError(400, "First and last names are required");
+  }
+  if (!/^[^\s@]+@(?:[a-z0-9-]+\.)+test$/i.test(normalizedEmail)) {
+    throw new ApiError(400, "Test user email must use a .test domain");
+  }
+  if (typeof password !== "string" || !/^\d{6}$/.test(password)) {
+    throw new ApiError(400, "Password must contain exactly 6 digits");
+  }
+  if (!AgileTestUserRoles.includes(role)) {
+    throw new ApiError(400, "Select a supported Agile test-user role");
+  }
+
+  const username = normalizedEmail.split("@")[0];
+  const existingUser = await User.findOne({
+    $or: [{ email: normalizedEmail }, { username }],
+  }).select("email username");
+  if (existingUser) throw new ApiError(409, "Email or username is already in use");
+
+  const user = await User.create({
+    username,
+    email: normalizedEmail,
+    fullName: `${normalizedFirstName} ${normalizedLastName}`,
+    password,
+    role,
+    loginType: UserLoginType.EMAIL_PASSWORD,
+    isEmailVerified: true,
+    isActive: true,
+    isTestAccount: true,
+  });
+  const createdUser = await User.findById(user._id).select(
+    "username fullName email role isActive isTestAccount createdAt"
+  );
+
+  return res
+    .status(201)
+    .json(new ApiResponse(201, { user: createdUser }, "Test user created", 1));
 });
 
 const loginUser = asyncHandler(async (req, res) => {
@@ -671,6 +717,7 @@ const googleLogin = asyncHandler(async (req, res) => {
 export {
   assignRole,
   changeCurrentPassword,
+  createTestUser,
   forgotPasswordRequest,
   handleSocialLogin,
   loginUser,

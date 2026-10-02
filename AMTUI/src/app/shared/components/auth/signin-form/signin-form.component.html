@@ -76,7 +76,24 @@
         </div>
       </div>
 
-      <!-- Form -->
+      <form [formGroup]="loginForm" (ngSubmit)="onSignIn()" class="space-y-5" novalidate>
+        @if (loginError) {
+          <p class="rounded-md border border-error-200 bg-error-50 px-3 py-2 text-sm text-error-700" role="alert">{{loginError}}</p>
+        }
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          Email
+          <input class="mt-1 h-11 w-full rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-800 outline-none focus:border-brand-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" type="email" formControlName="email" autocomplete="username" required />
+        </label>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          Password
+          <input class="mt-1 h-11 w-full rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-800 outline-none focus:border-brand-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" type="password" formControlName="password" autocomplete="current-password" required />
+        </label>
+        <button class="inline-flex h-11 w-full items-center justify-center rounded-lg bg-brand-500 px-4 text-sm font-semibold text-white transition hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-60" type="submit" [disabled]="isSubmitting">
+          {{isSubmitting ? 'Signing in…' : 'Sign in'}}
+        </button>
+      </form>
+
+      <!-- Legacy form markup retained temporarily for comparison -->
       <!-- <form  [formGroup]="loginForm" class="space-y-6">
         <div>
           <app-label>Email <span class="text-error-500">*</span></app-label>

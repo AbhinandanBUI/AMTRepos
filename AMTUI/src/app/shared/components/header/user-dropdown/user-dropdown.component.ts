@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { LocalStorageService } from '../../../../services/StorageServices/local-storage.service';
 import { UserProfile } from '../../../../core/app-type-defination';
+import { AuthService } from '../../../../services/StorageServices/auth-service.service';
 
 export interface Language {
   id: string;
@@ -52,7 +53,7 @@ export class UserDropdownComponent implements OnInit {
   ];
   userProfile: UserProfile|null = null;
 
-  constructor(private elementRef: ElementRef,private _localStorage:LocalStorageService,private _router:Router) {}
+  constructor(private elementRef: ElementRef,private _localStorage:LocalStorageService,private _router:Router, private _auth: AuthService) {}
 
   ngOnInit(): void {
     const savedDir = localStorage.getItem('dir');
@@ -82,7 +83,7 @@ export class UserDropdownComponent implements OnInit {
     this.isOpen = false;
     this.subDropdownOpen = false;
     if(type === 'logout'){
-    this._localStorage.logout();
+    this._auth.logout();
     this._router.navigate(['/signin']);
     }
   }

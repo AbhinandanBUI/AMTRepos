@@ -8,13 +8,17 @@ import { WorkItemsComponent } from './work-items/work-items.component';
 import { WorkItemTypeComponent } from './work-item-type/work-item-type.component';
 import { BacklogsComponent } from './backlogs/backlogs.component';
 import { WorkItemCreateComponent } from './work-item-create/work-item-create.component';
+import { UnauthorizedComponent } from '../../pages/other-page/unauthorized/unauthorized.component';
+import { roleGuard } from '../../authConfig/role.guard';
+import { AGILE_MANAGEMENT_ROLES, AGILE_WORKFLOW_ROLES } from './agile.models';
  
 const routes: Routes = [
   { path: '', component: WorkComponent },
   { path: 'backlogs', component: BacklogsComponent },
-  { path: 'boards', component: BoardsComponent },
+  { path: 'boards', component: BoardsComponent, canActivate: [roleGuard], data: { roles: AGILE_WORKFLOW_ROLES, modulePath: '/workitems' } },
   { path: 'my-query', component: MyQueryComponent },
-  { path: 'sprints', component: SprintsComponent },
+  { path: 'sprints', component: SprintsComponent, canActivate: [roleGuard], data: { roles: AGILE_MANAGEMENT_ROLES, modulePath: '/workitems' } },
+  { path: 'unauthorized', component: UnauthorizedComponent, title: 'Unauthorized | Work Items' },
   { path: 'work-items', component: WorkItemsComponent },
   { path: 'work-items/:type', component: WorkItemTypeComponent },
   { path: 'work-item-create', component: WorkItemCreateComponent },

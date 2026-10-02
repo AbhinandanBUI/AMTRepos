@@ -4,6 +4,10 @@
 export const UserRolesEnum = {
     ADMIN: "ADMIN",
     USER: "USER",
+  AGILE_ADMIN: "Admin",
+  SCRUM_MASTER: "ScrumMaster",
+  PRODUCT_OWNER: "ProductOwner",
+  DEVELOPER: "Developer",
   };
   
   export const AvailableUserRoles = Object.values(UserRolesEnum);

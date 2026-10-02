@@ -1,0 +1,38 @@
+<main class="master-data-page">
+	<header class="page-heading">
+		<div><p class="eyebrow">AGILE CONFIGURATION</p><h1>Work item types</h1><p class="page-description">Configure the kinds of work your teams can create.</p></div>
+		<span class="record-count">{{workItemLists.length}} types</span>
+	</header>
+
+	@if (errorMessage) { <p class="feedback feedback-error" role="alert">{{errorMessage}}</p> }
+	@if (successMessage) { <p class="feedback feedback-success" role="status">{{successMessage}}</p> }
+
+	<section class="form-panel" aria-labelledby="create-type-title">
+		<h2 id="create-type-title">Add a type</h2>
+		<form class="create-form" (ngSubmit)="createWorkItem()">
+			<label>Type name
+				<input class="field-input" name="name" [(ngModel)]="name" maxlength="60" autocomplete="off" required />
+			</label>
+			<label class="color-field">Color
+				<input type="color" name="colorCode" [(ngModel)]="colorCode" aria-label="Work item type color" />
+				<span>{{colorCode}}</span>
+			</label>
+			<button class="primary-button" type="submit" [disabled]="!name.trim() || isSaving">{{isSaving ? 'Adding…' : 'Add type'}}</button>
+		</form>
+	</section>
+
+	<section class="records-section" aria-labelledby="type-list-title">
+		<div class="section-heading"><h2 id="type-list-title">Available types</h2><button class="text-button" type="button" (click)="loadWorkItems()" [disabled]="isLoading">Refresh</button></div>
+		@if (isLoading) {
+			<p class="empty-state">Loading work item types…</p>
+		} @else if (workItemLists.length) {
+			<div class="record-list">
+				@for (item of workItemLists; track item._id) {
+					<article class="record-row"><span class="color-swatch" [style.backgroundColor]="item.colorCode"></span><strong>{{item.name}}</strong><span class="record-id">{{item.workItemId}}</span></article>
+				}
+			</div>
+		} @else {
+			<p class="empty-state">No work item types are configured yet.</p>
+		}
+	</section>
+</main>

@@ -97,6 +97,15 @@ export class AppSidebarComponent {
         { name: "Account", path: "/settings/account", pro: false },
         { name: "Preferences", path: "/settings/preferences", pro: false },
       ]
+    },
+    {
+      name: "Admin",
+      icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C11.5858 2 11.25 2.33579 11.25 2.75V12C11.25 12.4142 11.5858 12.75 12 12.75H21.25C21.6642 12.75 22 12.4142 22 12C22 6.47715 17.5228 2 12 2ZM12.75 11.25V3.53263C13.2645 3.57761 13.7659 3.66843 14.25 3.80098V3.80099C15.6929 4.19606 16.9827 4.      96184 18.0104 5.98959C19.0382 7.01734 19.8039 8.30707 20.199 9.75C20.3316 10.2341 20.4224 10.7355 20.4674 11.25H12.75Z" fill="currentColor"></path></svg>`,
+      subItems: [
+        { name: "WorkItems", path: "/admin/workitem", pro: false },
+        { name: "Development State", path: "/admin/development-state", pro: false },
+        { name: "Test Users", path: "/admin/test-users", pro: false },
+      ]
     }
   ];
   // Others nav items

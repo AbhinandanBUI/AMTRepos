@@ -4,6 +4,7 @@ import { UserRolesEnum } from "../constants.js";
 import {
   assignRole,
   changeCurrentPassword,
+  createTestUser,
   forgotPasswordRequest,
   handleSocialLogin,
   loginUser,
@@ -37,6 +38,11 @@ const router = Router();
 
 // Unsecured route
 router.route("/register").post(userRegisterValidator(), validate, registerUser);
+router.route("/test-users").post(
+  verifyJWT,
+  verifyPermission([UserRolesEnum.ADMIN, UserRolesEnum.AGILE_ADMIN]),
+  createTestUser
+);
 router.route("/login").post(userLoginValidator(), validate, loginUser);
 router.route("/google-login").post(validate, googleLogin);
 router.route("/refresh-token").post(refreshAccessToken);

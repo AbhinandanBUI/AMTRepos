@@ -2,8 +2,14 @@
 	<aside>
 		<h3 style="margin-top:0;">Work Item Types</h3>
 		<ul style="list-style:none; padding-left:0; margin:0;">
-			<li *ngFor="let t of workItemTypes" style="margin:0.4rem 0;">
-				<button class="btn" style="width:100%; text-align:left; background:transparent;" (click)="selectType(t)">{{t.Name}}</button>
+			<li *ngFor="let t of workItemTypes()" style="margin:0.4rem 0;">
+				<!-- <button class="btn" style="width:100%; text-align:left; background:transparent;" (click)="selectType(t)">{{t.name}}</button> -->
+				 <button class="btn type-btn"
+                    style="width:100%; text-align:left; background:transparent; border:1px solid transparent; padding:0.5rem; display:flex; gap:0.6rem; align-items:center;"
+                    [class.active]="selectedType===t" (click)="selectType(t)">
+                    <span class="type-dot" [style.background]="t.colorCode"></span>
+                    <span>{{t.name}}</span>
+                </button>
 			</li>
 		</ul>
 	</aside>

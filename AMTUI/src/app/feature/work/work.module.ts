@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DatePickerComponent } from '../../shared/components/form/date-picker/date-picker.component';
+import { DragDropModule } from '@angular/cdk/drag-drop';
 
 import { WorkRoutingModule } from './work-routing.module';
 import { WorkComponent } from './work.component';
@@ -12,6 +13,7 @@ import { BoardsComponent } from './boards/boards.component';
 import { BacklogsComponent } from './backlogs/backlogs.component';
 import { WorkItemCreateComponent } from './work-item-create/work-item-create.component';
 import { WorkItemTypeComponent } from './work-item-type/work-item-type.component';
+import { StoryCardComponent } from '../../shared/components/agile/story-card/story-card.component';
 
 
 @NgModule({
@@ -19,6 +21,8 @@ import { WorkItemTypeComponent } from './work-item-type/work-item-type.component
   imports: [
     CommonModule,
     FormsModule,
+    DragDropModule,
+    StoryCardComponent,
     DatePickerComponent,
     WorkRoutingModule
   ]

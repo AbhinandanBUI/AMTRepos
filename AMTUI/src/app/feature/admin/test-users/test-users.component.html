@@ -1,0 +1,52 @@
+<main class="test-users-page">
+	<header class="page-heading">
+		<div>
+			<p class="eyebrow">ADMINISTRATION</p>
+			<h1>Create test user</h1>
+			<p class="page-description">Test accounts are restricted to the reserved <code>.test</code> email domain.</p>
+		</div>
+	</header>
+
+	@if (errorMessage) { <p class="feedback feedback-error" role="alert">{{errorMessage}}</p> }
+	@if (successMessage) { <p class="feedback feedback-success" role="status">{{successMessage}}</p> }
+
+	<section class="form-panel" aria-labelledby="create-user-heading">
+		<h2 id="create-user-heading">Account details</h2>
+		<form class="user-form" #testUserForm="ngForm" (ngSubmit)="createTestUser()">
+			<label>First name
+				<input class="field-input" name="firstName" [(ngModel)]="form.firstName" autocomplete="given-name" maxlength="80" required />
+			</label>
+			<label>Last name
+				<input class="field-input" name="lastName" [(ngModel)]="form.lastName" autocomplete="family-name" maxlength="80" required />
+			</label>
+			<label>Email
+				<input class="field-input" name="email" type="email" [(ngModel)]="form.email" autocomplete="off" placeholder="person@example.test" pattern="[^\s@]+@([^\s@]+\.)+test" required />
+			</label>
+			<label>Role
+				<select class="field-input" name="role" [(ngModel)]="form.role" required>
+					@for (role of roles; track role.value) { <option [value]="role.value">{{role.label}}</option> }
+				</select>
+			</label>
+			<label class="full-width">Password
+				<input class="field-input" name="password" type="password" [(ngModel)]="form.password" autocomplete="new-password" inputmode="numeric" pattern="[0-9]{6}" minlength="6" maxlength="6" required />
+				<span class="field-hint">Enter exactly 6 digits. The password is hashed by the API.</span>
+			</label>
+			<div class="form-actions full-width">
+				<button class="primary-button" type="submit" [disabled]="testUserForm.invalid || isSaving">{{isSaving ? 'Creating…' : 'Create test user'}}</button>
+			</div>
+		</form>
+	</section>
+
+	<section class="created-users" aria-labelledby="created-users-heading">
+		<div class="section-heading"><h2 id="created-users-heading">Created this session</h2><span>{{users.length}}</span></div>
+		@if (users.length) {
+			<div class="user-list">
+				@for (user of users; track user._id) {
+					<div class="user-row"><strong>{{user.fullName}}</strong><span>{{user.email}}</span><span class="role-tag">{{user.role}}</span></div>
+				}
+			</div>
+		} @else {
+			<p class="empty-state">Newly created accounts will appear here.</p>
+		}
+	</section>
+</main>

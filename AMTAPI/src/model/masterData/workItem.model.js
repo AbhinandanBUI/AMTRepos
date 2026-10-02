@@ -17,6 +17,11 @@ const workItemSchema = new Schema(
             required: true,
             default: true,
         },
+        colorCode: {
+            type: String,
+            required: true,
+            default: "#56c8ed",
+        },
         createdByUser: {
             type: Schema.Types.ObjectId,
             ref: "User",
