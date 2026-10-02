@@ -21,6 +21,8 @@
 - Added backlog assignee selection on story creation and reassignment for existing backlog stories. Once a story is assigned to a sprint, the Kanban board groups its status columns into project-member swimlanes plus an Unassigned bucket, so ownership is visible throughout the workflow.
 - Added `PATCH /api/agile/issues/:issueId/assignee`, validating that the selected active user belongs to the issue's project; passing `assigneeRef: null` returns the story to the Unassigned bucket.
 - Replaced the sample-only Backlogs page with persisted Agile backlog issues. It defaults to the signed-in user's assigned items, supports an all-project-backlog view, and can move a story into a selected sprint; the API transitions sprinted Backlog stories to `To Do` so they appear on the board.
+- Replaced My Query's generated demo records with persisted issues across all accessible projects. Query tokens and quick filters now match real issue keys, projects, assignees, status, priority, and title; supports `assignee:me`, assigned-to-me scope, pagination, and API loading/error states.
+- Replaced the Work Items sample list and local-only edits with project-scoped persisted Agile issues. The page supports creating stories, search/status/priority filters, and API-backed assignee, status, and sprint changes; sprinted new stories start in `To Do` and the page is protected by the Agile role guard.
 - Fixed Tailwind v4 component stylesheet referencing so the Angular production build can resolve `@apply` utilities.
 
 ## API Routes

@@ -1,8 +1,7 @@
-import { Component, OnInit, signal, ViewChild } from '@angular/core';
-import { Id_Name_Type, Work_Item_Type } from '../../../core/app-type-defination';
-import { New_Work_Items, APP_User_Data, Work_Item_States } from '../../../core/app-constant-data';
-import { WorkItemCreateComponent } from '../work-item-create/work-item-create.component';
-import { DataBroadCastChannelService } from '../../../services/StorageServices/data-broad-cast-channel.service';
+import { Component, inject, OnInit } from '@angular/core';
+import { forkJoin, Observable } from 'rxjs';
+import { AgileService } from '../agile.service';
+import { AgileIssue, AgileSprint, AgileUser, ISSUE_PRIORITIES, ISSUE_STATUSES, IssuePriority, IssueStatus } from '../agile.models';
 
 
 
@@ -13,102 +12,149 @@ import { DataBroadCastChannelService } from '../../../services/StorageServices/d
   templateUrl: './work-items.component.html',
 })
 export class WorkItemsComponent implements OnInit {
-  workItemLists: Id_Name_Type[] = [];
-  workItemTypes = signal<Work_Item_Type[]>([]);
-  selectedType: any = null;
-  items: any[] = [];
-  filterQ = '';
-  showEditor = false;
-  editingItem: any = null;
-  editingId: any = null;
-  tempEdit: any = null;
-  users = (APP_User_Data || []).slice();
-  stateOptions = (Work_Item_States || []).map((s: any) => s.Name);
+  private readonly agile = inject(AgileService);
+  readonly projects = this.agile.projects;
+  readonly selectedProject = this.agile.selectedProject;
+  readonly issues = this.agile.issues;
+  readonly error = this.agile.error;
+  readonly statuses = ISSUE_STATUSES;
+  readonly priorities = ISSUE_PRIORITIES;
 
-  @ViewChild('editor', { static: false }) editor?: WorkItemCreateComponent;
-
-
-  constructor(private _dataService: DataBroadCastChannelService) {
-
-
-  }
+  selectedProjectId = '';
+  searchText = '';
+  statusFilter = '';
+  priorityFilter = '';
+  isLoading = false;
+  isCreating = false;
+  creationError = '';
+  formOpen = false;
+  readonly busyIssueIds = new Set<string>();
+  newTitle = '';
+  newDescription = '';
+  newPriority: IssuePriority = 'Medium';
+  newStoryPoints = 0;
+  newAssigneeId = '';
+  newSprintId = '';
 
   ngOnInit(): void {
-    this.workItemLists = New_Work_Items;
-    this._dataService.workItems$.subscribe(data => {
-      this.workItemTypes.set(data);
-    })
-
-    if (this.workItemTypes.length) this.selectType(this.workItemTypes()[0]);
+    this.isLoading = true;
+    this.agile.loadProjects().subscribe({
+      next: (projects) => {
+        if (!projects.length) {
+          this.isLoading = false;
+          return;
+        }
+        this.selectProject(projects[0]._id);
+      },
+      error: () => this.isLoading = false,
+    });
   }
 
-  selectType(t: any) {
-    this.selectedType = t;
-    this.items = this.generateSampleItemsFor(t, 8);
+  get sprints(): AgileSprint[] {
+    return this.agile.sprints().filter((sprint) => sprint.status !== 'Completed');
   }
 
-  generateSampleItemsFor(type: any, count = 6) {
-    const arr: any[] = [];
-    for (let i = 1; i <= count; i++) {
-      arr.push({ id: `${type.Name}-${i}`, type: type.Name, title: `${type.Name} ${i} sample`, state: i % 3 === 0 ? 'In Progress' : 'New', assignedTo: 'Unassigned', storyPoint: (i % 5) + 1 });
+  get projectMembers(): AgileUser[] {
+    return this.selectedProject()?.members.filter((member): member is AgileUser => typeof member !== 'string') || [];
+  }
+
+  get filteredIssues(): AgileIssue[] {
+    const query = this.searchText.trim().toLowerCase();
+    return this.issues().filter((issue) => {
+      const matchesQuery = !query || `${issue.issueKey} ${issue.title}`.toLowerCase().includes(query);
+      const matchesStatus = !this.statusFilter || issue.status === this.statusFilter;
+      const matchesPriority = !this.priorityFilter || issue.priority === this.priorityFilter;
+      return matchesQuery && matchesStatus && matchesPriority;
+    });
+  }
+
+  selectProject(projectId: string): void {
+    this.selectedProjectId = projectId;
+    const project = this.projects().find((item) => item._id === projectId) || null;
+    this.agile.selectedProject.set(project);
+    this.isLoading = true;
+    if (!project) {
+      this.agile.clearProjectState();
+      this.isLoading = false;
+      return;
     }
-    return arr;
+
+    forkJoin({
+      issues: this.agile.loadIssues(projectId),
+      sprints: this.agile.loadSprints(projectId),
+    }).subscribe({
+      next: () => this.isLoading = false,
+      error: () => this.isLoading = false,
+    });
   }
 
-  get filteredItems() {
-    const q = (this.filterQ || '').toLowerCase();
-    return this.items.filter(i => !q || (i.title || '').toLowerCase().includes(q));
+  createIssue(): void {
+    const project = this.selectedProject();
+    const title = this.newTitle.trim();
+    if (!project || !title || this.newStoryPoints < 0 || this.newStoryPoints > 100) return;
+
+    this.isCreating = true;
+    this.creationError = '';
+    this.agile.createIssue(project._id, {
+      title,
+      description: this.newDescription.trim(),
+      status: this.newSprintId ? 'To Do' : 'Backlog',
+      priority: this.newPriority,
+      storyPoints: Number(this.newStoryPoints),
+      assigneeRef: this.newAssigneeId || null,
+      sprintRef: this.newSprintId || null,
+    }).subscribe({
+      next: () => {
+        this.newTitle = '';
+        this.newDescription = '';
+        this.newPriority = 'Medium';
+        this.newStoryPoints = 0;
+        this.newAssigneeId = '';
+        this.newSprintId = '';
+        this.formOpen = false;
+        this.isCreating = false;
+      },
+      error: () => {
+        this.creationError = this.error();
+        this.isCreating = false;
+      },
+    });
   }
 
-  openEditor(item?: any) {
-    this.editingItem = item ? JSON.parse(JSON.stringify(item)) : { title: '', type: this.selectedType?.Name || '', state: 'New' };
-    this.showEditor = true;
-    // set editor model when available
-    setTimeout(() => {
-      if (this.editor) this.editor.model = JSON.parse(JSON.stringify(this.editingItem));
-    }, 0);
+  updateStatus(issue: AgileIssue, status: IssueStatus): void {
+    this.runIssueUpdate(issue, () => this.agile.updateIssueStatus(issue._id, status));
   }
 
-  // Inline row editing (edit in-grid except Title is readonly)
-  beginInlineEdit(item: any) {
-    this.editingId = item.id;
-    this.tempEdit = JSON.parse(JSON.stringify(item));
+  updateAssignee(issue: AgileIssue, assigneeRef: string): void {
+    this.runIssueUpdate(issue, () => this.agile.updateIssueAssignee(issue._id, assigneeRef || null));
   }
 
-  cancelInlineEdit() {
-    this.editingId = null;
-    this.tempEdit = null;
+  updateSprint(issue: AgileIssue, sprintRef: string): void {
+    this.runIssueUpdate(issue, () => this.agile.updateIssueSprint(issue._id, sprintRef || null));
   }
 
-  saveInlineEdit() {
-    if (!this.editingId || !this.tempEdit) return;
-    const idx = this.items.findIndex(i => i.id === this.editingId);
-    if (idx >= 0) {
-      // preserve title, but update other fields
-      const title = this.items[idx].title;
-      this.items[idx] = { ...this.tempEdit, title };
-    }
-    this.cancelInlineEdit();
+  isBusy(issue: AgileIssue): boolean {
+    return this.busyIssueIds.has(issue._id);
   }
 
-  closeEditor() {
-    this.showEditor = false;
-    this.editingItem = null;
+  getAssigneeName(issue: AgileIssue): string {
+    return issue.assigneeRef?.fullName || 'Unassigned';
   }
 
-  // Helpers for consistent UI
-  // color palettes and canonical maps (shared with editor)
-  private avatarPalette = ['#2563eb', '#0ea5e9', '#f97316', '#10b981', '#7c3aed', '#ef4444', '#06b6d4', '#f59e0b', '#a78bfa', '#7dd3fc'];
-  private stateColorMap: Record<string, string> = {
-    'New': '#0ea5e9', 'Active': '#f59e0b', 'In Progress': '#f97316', 'Resolved': '#10b981', 'Closed': '#6b7280', 'Blocked': '#ef4444'
-  };
-  private typeColorMap: Record<string, string> = {
-    'Bug': '#ef4444', 'ChangeRequest': '#f97316', 'Epic': '#8b5cf6', 'Feature': '#3b82f6', 'Issue': '#fb7185', 'Observation': '#f59e0b', 'Risk': '#f43f5e', 'Subtask': '#06b6d4', 'Task': '#10b981', 'Test': '#6366f1', 'TestCase': '#7c3aed', 'UserStory': '#0ea5a4', 'User Story': '#0ea5a4'
-  };
+  getSprintName(issue: AgileIssue): string {
+    return typeof issue.sprintRef === 'string' ? 'In sprint' : issue.sprintRef?.name || 'Backlog';
+  }
 
-  getAssigneeColor(name: string) { if (!name) return '#cbd5e1'; let s = 0; for (let i = 0; i < name.length; i++) s = (s * 31 + name.charCodeAt(i)) >>> 0; return this.avatarPalette[s % this.avatarPalette.length]; }
-  getInitials(name: string) { if (!name) return ''; const p = name.split(' ').filter(Boolean); return p.length === 1 ? p[0].charAt(0).toUpperCase() : (p[0].charAt(0) + p[1].charAt(0)).toUpperCase(); }
-  getStateColor(state: string) { if (!state) return '#94a3b8'; return this.stateColorMap[state] || '#94a3b8'; }
-  getTypeColor(typeName: string) { return this.typeColorMap[typeName] || '#94a3b8'; }
+  getSprintId(issue: AgileIssue): string {
+    return typeof issue.sprintRef === 'string' ? issue.sprintRef : issue.sprintRef?._id || '';
+  }
+
+  private runIssueUpdate(issue: AgileIssue, update: () => Observable<AgileIssue>): void {
+    this.busyIssueIds.add(issue._id);
+    update().subscribe({
+      next: () => this.busyIssueIds.delete(issue._id),
+      error: () => this.busyIssueIds.delete(issue._id),
+    });
+  }
 
 }

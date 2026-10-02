@@ -1,100 +1,62 @@
-<div style="display:grid; grid-template-columns: 260px 1fr; gap:1rem;">
-	<aside>
-		<h3 style="margin-top:0;">Work Item Types</h3>
-		<ul style="list-style:none; padding-left:0; margin:0;">
-			<li *ngFor="let t of workItemTypes()" style="margin:0.4rem 0;">
-				<!-- <button class="btn" style="width:100%; text-align:left; background:transparent;" (click)="selectType(t)">{{t.name}}</button> -->
-				 <button class="btn type-btn"
-                    style="width:100%; text-align:left; background:transparent; border:1px solid transparent; padding:0.5rem; display:flex; gap:0.6rem; align-items:center;"
-                    [class.active]="selectedType===t" (click)="selectType(t)">
-                    <span class="type-dot" [style.background]="t.colorCode"></span>
-                    <span>{{t.name}}</span>
-                </button>
-			</li>
-		</ul>
-	</aside>
-
-	<section>
-		<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
-			<div>
-				<h2 style="margin:0">{{selectedType?.Name || 'Work Items'}}</h2>
-				<div class="subtitle">List of {{selectedType?.Name || 'items'}}</div>
-			</div>
-			<div>
-				<input class="field-input" placeholder="Search" [(ngModel)]="filterQ" style="margin-right:0.5rem;" />
-				<button class="btn btn-primary" (click)="openEditor()">New {{selectedType?.Name || 'Item'}}</button>
-			</div>
+<main class="work-items-page">
+	<header class="page-heading">
+		<div><p class="eyebrow">DELIVERY</p><h1>Work items</h1><p class="page-description">Create and manage persisted project stories.</p></div>
+		<div class="header-controls">
+			@if (projects().length) {
+				<label>Project<select class="field-input project-select" [ngModel]="selectedProjectId" (ngModelChange)="selectProject($event)">@for (project of projects(); track project._id) { <option [value]="project._id">{{project.key}} · {{project.name}}</option> }</select></label>
+			}
+			<button class="btn btn-primary" type="button" [disabled]="!selectedProject()" (click)="formOpen = !formOpen">{{formOpen ? 'Close form' : 'New work item'}}</button>
 		</div>
+	</header>
 
-		<div *ngIf="filteredItems && filteredItems.length; else empty">
-			<div style="display:grid; grid-template-columns: 1fr 120px 120px 80px; gap:0.5rem; font-weight:700; padding:0.4rem 0; border-bottom:1px solid #eef2f7;">
-				<div>Title</div>
-				<div>Assignee</div>
-				<div>State</div>
-				<div></div>
-			</div>
-			<div *ngFor="let it of filteredItems" style="display:grid; grid-template-columns: 1fr 160px 140px 100px; gap:0.5rem; padding:0.6rem 0; border-bottom:1px dashed #f1f5f9; align-items:center;">
-				<div>
-					<div style="font-weight:600">{{it.title}}</div>
-				</div>
-				<div>
-					<ng-container *ngIf="editingId!==it.id; else editAssignee">
-						<div style="display:flex; align-items:center; gap:0.6rem">
-						  <div class="avatar" [style.background]="getAssigneeColor(it.assignedTo)" style="width:32px;height:32px;border-radius:8px;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700">{{getInitials(it.assignedTo)}}</div>
-						  <div>{{it.assignedTo}}</div>
-						</div>
-					</ng-container>
-					<ng-template #editAssignee>
-						<select class="field-input" [(ngModel)]="tempEdit.assignedTo">
-							<option value="">Unassigned</option>
-							<option *ngFor="let u of users" [value]="u.Name">{{u.Name}}</option>
-						</select>
-					</ng-template>
-				</div>
-				<div>
-					<ng-container *ngIf="editingId!==it.id; else editState">
-						<span class="state-badge" [style.background]="getStateColor(it.state)">{{it.state}}</span>
-					</ng-container>
-					<ng-template #editState>
-						<select class="field-input" [(ngModel)]="tempEdit.state">
-							<option *ngFor="let s of stateOptions" [value]="s">{{s}}</option>
-						</select>
-					</ng-template>
-				</div>
-				<div style="display:flex; gap:0.4rem; justify-content:flex-end;">
-					<ng-container *ngIf="editingId!==it.id">
-						<button class="icon-btn" (click)="beginInlineEdit(it)" title="Edit">
-							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-								<path d="M12 20h9"/>
-								<path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
-							</svg>
-						</button>
-					</ng-container>
-					<ng-container *ngIf="editingId===it.id">
-						<div class="action-buttons">
-							<button class="btn btn-primary" (click)="saveInlineEdit()">Save</button>
-							<button class="btn" (click)="cancelInlineEdit()">Cancel</button>
-						</div>
-					</ng-container>
-				</div>
-			</div>
-		</div>
-		<ng-template #empty><div class="panel-empty">No items</div></ng-template>
+	@if (error()) { <p class="notice" role="alert">{{error()}}</p> }
+	@if (creationError) { <p class="notice" role="alert">{{creationError}}</p> }
 
-		<!-- Modal editor -->
-		<div *ngIf="showEditor" class="modal-backdrop" (click)="closeEditor()" style="position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(2,6,23,0.45); z-index:80;">
-			<div class="modal-card" (click)="$event.stopPropagation()" style="width:880px; max-width:94%; background:#fff; border-radius:10px; padding:1rem; box-shadow:0 18px 48px rgba(2,6,23,0.28);">
-				<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
-					<h3 style="margin:0">{{ editingItem?.title ? 'Edit Item' : 'Create Item' }}</h3>
-					<button class="btn" (click)="closeEditor()" aria-label="Close">✕</button>
-				</div>
-				<app-work-item-create #editor></app-work-item-create>
-				<div style="margin-top:0.75rem; display:flex; gap:0.5rem; justify-content:flex-end;">
-					<button class="btn" (click)="closeEditor()">Close</button>
-				</div>
+	@if (formOpen) {
+		<section class="create-panel" aria-labelledby="create-work-item-title">
+			<h2 id="create-work-item-title">Create work item</h2>
+			<form class="create-form" (ngSubmit)="createIssue()">
+				<label class="field-wide">Title<input class="field-input" name="title" [(ngModel)]="newTitle" maxlength="200" required /></label>
+				<label class="field-wide">Description<textarea class="field-input" name="description" [(ngModel)]="newDescription" rows="2" maxlength="5000"></textarea></label>
+				<label>Priority<select class="field-input" name="priority" [(ngModel)]="newPriority">@for (priority of priorities; track priority) { <option [value]="priority">{{priority}}</option> }</select></label>
+				<label>Story points<input class="field-input" name="storyPoints" type="number" min="0" max="100" [(ngModel)]="newStoryPoints" /></label>
+				<label>Assignee<select class="field-input" name="assignee" [(ngModel)]="newAssigneeId"><option value="">Unassigned</option>@for (member of projectMembers; track member._id) { <option [value]="member._id">{{member.fullName}}</option> }</select></label>
+				<label>Sprint<select class="field-input" name="sprint" [(ngModel)]="newSprintId"><option value="">Backlog</option>@for (sprint of sprints; track sprint._id) { <option [value]="sprint._id">{{sprint.name}} · {{sprint.status}}</option> }</select></label>
+				<div class="form-actions field-wide"><span class="field-hint">Stories added to a sprint start in To Do; backlog stories stay in Backlog.</span><button class="btn btn-primary" type="submit" [disabled]="!newTitle.trim() || isCreating">{{isCreating ? 'Saving…' : 'Create work item'}}</button></div>
+			</form>
+		</section>
+	}
+
+	@if (!projects().length && !isLoading) {
+		<section class="empty-state"><h2>No accessible projects</h2><p>Create a project or ask a project lead to add you to one.</p></section>
+	} @else {
+		<section class="items-panel">
+			<div class="list-toolbar">
+				<p class="result-count">{{filteredIssues.length}} work items</p>
+				<input class="field-input search-field" aria-label="Search work items" placeholder="Search by key or title" [(ngModel)]="searchText" />
+				<select class="field-input filter-select" aria-label="Filter by status" [(ngModel)]="statusFilter"><option value="">All statuses</option>@for (status of statuses; track status) { <option [value]="status">{{status}}</option> }</select>
+				<select class="field-input filter-select" aria-label="Filter by priority" [(ngModel)]="priorityFilter"><option value="">All priorities</option>@for (priority of priorities; track priority) { <option [value]="priority">{{priority}}</option> }</select>
 			</div>
-		</div>
-	</section>
-</div>
+			@if (isLoading) {
+				<p class="empty-state">Loading project work items…</p>
+			} @else if (filteredIssues.length) {
+				<div class="issue-list">
+					@for (issue of filteredIssues; track issue._id) {
+						<article class="issue-row" [class.is-busy]="isBusy(issue)">
+							<div class="issue-heading"><span class="issue-key">{{issue.issueKey}}</span><strong>{{issue.title}}</strong><span class="priority-pill" [class]="'priority-pill priority--' + issue.priority.toLowerCase()">{{issue.priority}}</span><span class="points">{{issue.storyPoints}} pts</span></div>
+							<div class="issue-controls">
+								<label>Status<select class="field-input" [ngModel]="issue.status" (ngModelChange)="updateStatus(issue, $event)" [disabled]="isBusy(issue)">@for (status of statuses; track status) { <option [value]="status">{{status}}</option> }</select></label>
+								<label>Assignee<select class="field-input" [ngModel]="issue.assigneeRef?._id || ''" (ngModelChange)="updateAssignee(issue, $event)" [disabled]="isBusy(issue)"><option value="">Unassigned</option>@for (member of projectMembers; track member._id) { <option [value]="member._id">{{member.fullName}}</option> }</select></label>
+								<label>Sprint<select class="field-input" [ngModel]="getSprintId(issue)" (ngModelChange)="updateSprint(issue, $event)" [disabled]="isBusy(issue)"><option value="">Backlog</option>@for (sprint of sprints; track sprint._id) { <option [value]="sprint._id">{{sprint.name}}</option> }</select></label>
+							</div>
+						</article>
+					}
+				</div>
+			} @else {
+				<p class="empty-state">No work items match this project and filter set.</p>
+			}
+		</section>
+	}
+</main>
 
  

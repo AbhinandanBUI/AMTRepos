@@ -85,6 +85,10 @@ export class AgileService {
     );
   }
 
+  fetchProjectIssues(projectId: string): Observable<AgileIssue[]> {
+    return this.request<AgileIssue[]>(this.api.get(App_API_Endpoints.agile.projectIssues(projectId)));
+  }
+
   createIssue(projectId: string, issue: CreateIssueRequest): Observable<AgileIssue> {
     return this.request<AgileIssue>(
       this.api.post(App_API_Endpoints.agile.projectIssues(projectId), issue)

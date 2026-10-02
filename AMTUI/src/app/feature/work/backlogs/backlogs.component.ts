@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { forkJoin } from 'rxjs';
 import { AuthService } from '../../../services/StorageServices/auth-service.service';
 import { AgileService } from '../agile.service';
@@ -18,66 +18,57 @@ export class BacklogsComponent implements OnInit {
   readonly sprints = this.agile.sprints;
   readonly error = this.agile.error;
 
-  selectedProjectId = '';
-  selectedSprintId = '';
-  searchText = '';
-  assignedToMeOnly = true;
-  isLoading = false;
-  isAssigningIssueId: string | null = null;
+  readonly selectedProjectId = signal('');
+  readonly selectedSprintId = signal('');
+  readonly searchText = signal('');
+  readonly assignedToMeOnly = signal(true);
+  readonly isLoading = signal(false);
+  readonly isAssigningIssueId = signal<string | null>(null);
+  readonly currentUserId = computed(() => this.auth.user()?.id || '');
+  readonly selectedProject = computed(() =>
+    this.projects().find((project) => project._id === this.selectedProjectId())
+  );
+  readonly availableSprints = computed(() =>
+    this.sprints().filter((sprint) => sprint.status !== 'Completed')
+  );
+  readonly backlogIssues = computed(() => {
+    const search = this.searchText().trim().toLowerCase();
+    return this.issues().filter((issue) => {
+      const inBacklog = !this.getSprintId(issue);
+      const assignedToMe = this.getAssigneeId(issue) === this.currentUserId();
+      const matchesOwner = !this.assignedToMeOnly() || assignedToMe;
+      const matchesSearch = !search || `${issue.issueKey} ${issue.title}`.toLowerCase().includes(search);
+      return inBacklog && matchesOwner && matchesSearch;
+    });
+  });
+  readonly assignedBacklogCount = computed(() =>
+    this.issues().filter((issue) =>
+      !this.getSprintId(issue) && this.getAssigneeId(issue) === this.currentUserId()
+    ).length
+  );
 
   ngOnInit(): void {
-    this.isLoading = true;
-    debugger;
+    this.isLoading.set(true);
     this.agile.loadProjects().subscribe({
       next: (projects) => {
         const firstProject = projects[0];
         if (!firstProject) {
-          this.isLoading = false;
+          this.isLoading.set(false);
           return;
         }
         this.selectProject(firstProject._id);
       },
-      error: () => this.isLoading = false,
+      error: () => this.isLoading.set(false),
     });
-  }
-
-  get currentUserId(): string {
-    return this.auth.user()?.id || '';
-  }
-
-  get selectedProject(): AgileProject | undefined {
-    return this.projects().find((project) => project._id === this.selectedProjectId);
-  }
-
-  get availableSprints(): AgileSprint[] {
-    return this.sprints().filter((sprint) => sprint.status !== 'Completed');
-  }
-
-  get backlogIssues(): AgileIssue[] {
-    const search = this.searchText.trim().toLowerCase();
-    debugger;
-    return this.issues().filter((issue) => {
-      const inBacklog = !this.getSprintId(issue);
-      const assignedToMe = this.getAssigneeId(issue) === this.currentUserId;
-      const matchesOwner = !this.assignedToMeOnly || assignedToMe;
-      const matchesSearch = !search || `${issue.issueKey} ${issue.title}`.toLowerCase().includes(search);
-      return inBacklog && matchesOwner && matchesSearch;
-    });
-  }
-
-  get assignedBacklogCount(): number {
-    return this.issues().filter((issue) =>
-      !this.getSprintId(issue) && this.getAssigneeId(issue) === this.currentUserId
-    ).length;
   }
 
   selectProject(projectId: string): void {
-    this.selectedProjectId = projectId;
-    this.selectedSprintId = '';
-    this.isLoading = true;
+    this.selectedProjectId.set(projectId);
+    this.selectedSprintId.set('');
+    this.isLoading.set(true);
     this.agile.selectedProject.set(this.projects().find((project) => project._id === projectId) || null);
     if (!projectId) {
-      this.isLoading = false;
+      this.isLoading.set(false);
       return;
     }
 
@@ -86,20 +77,21 @@ export class BacklogsComponent implements OnInit {
       sprints: this.agile.loadSprints(projectId),
     }).subscribe({
       next: ({ sprints }) => {
-        this.selectedSprintId = sprints.find((sprint) => sprint.status === 'Active')?._id ||
-          sprints.find((sprint) => sprint.status === 'Planned')?._id || '';
-        this.isLoading = false;
+        this.selectedSprintId.set(sprints.find((sprint) => sprint.status === 'Active')?._id ||
+          sprints.find((sprint) => sprint.status === 'Planned')?._id || '');
+        this.isLoading.set(false);
       },
-      error: () => this.isLoading = false,
+      error: () => this.isLoading.set(false),
     });
   }
 
   assignToSprint(issue: AgileIssue): void {
-    if (!this.selectedSprintId) return;
-    this.isAssigningIssueId = issue._id;
-    this.agile.updateIssueSprint(issue._id, this.selectedSprintId).subscribe({
-      next: () => this.isAssigningIssueId = null,
-      error: () => this.isAssigningIssueId = null,
+    const sprintId = this.selectedSprintId();
+    if (!sprintId) return;
+    this.isAssigningIssueId.set(issue._id);
+    this.agile.updateIssueSprint(issue._id, sprintId).subscribe({
+      next: () => this.isAssigningIssueId.set(null),
+      error: () => this.isAssigningIssueId.set(null),
     });
   }
 

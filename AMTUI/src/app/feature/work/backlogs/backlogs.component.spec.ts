@@ -69,8 +69,8 @@ describe('BacklogsComponent', () => {
       },
     ]);
 
-    expect(component.backlogIssues.map((issue) => issue.issueKey)).toEqual(['PRJ-1']);
-    component.assignedToMeOnly = false;
-    expect(component.backlogIssues.length).toBe(2);
+    expect(component.backlogIssues().map((issue) => issue.issueKey)).toEqual(['PRJ-1']);
+    component.assignedToMeOnly.set(false);
+    expect(component.backlogIssues().length).toBe(2);
   });
 });
